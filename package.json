@@ -1,0 +1,14 @@
+{
+  "name": "purescript-behaviors",
+  "version": "0.1.0",
+  "description": "A simple implementation of FRP which separates events and behaviors",
+  "main": "",
+  "private": true,
+  "author": "Phil Freeman",
+  "license": "MIT",
+  "dependencies": {
+    "grunt": "~0.4.4",
+    "grunt-contrib-clean": "~0.5.0",
+    "grunt-purescript": "~0.6.0"
+  }
+}
