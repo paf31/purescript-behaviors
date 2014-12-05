@@ -38,7 +38,7 @@ module.exports = function(grunt) {
     uglify: {
       lib: {
         files: {
-          "dist/behavior.min.js": ["js/behavior.js"]
+          "dist/behavior.min.js": ["dist/behavior.js"]
         }
       }
     },
