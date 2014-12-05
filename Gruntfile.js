@@ -35,13 +35,23 @@ module.exports = function(grunt) {
       }
     },
 
+    uglify: {
+      lib: {
+        files: {
+          "dist/behavior.min.js": ["js/behavior.js"]
+        }
+      }
+    },
+
     dotPsci: ["<%=libFiles%>"]
   });
 
   grunt.loadNpmTasks("grunt-contrib-clean");
+  grunt.loadNpmTasks("grunt-contrib-uglify");
   grunt.loadNpmTasks("grunt-purescript");
 
   grunt.registerTask("make", ["pscMake:lib", "pscDocs:lib", "dotPsci"]);
   grunt.registerTask("example", ["psc:example"]);
+  grunt.registerTask("minify", ["uglify:lib"]);
   grunt.registerTask("default", ["clean", "make", "example"]);
 };
