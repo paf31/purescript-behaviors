@@ -53,5 +53,5 @@ module.exports = function(grunt) {
   grunt.registerTask("make", ["pscMake:lib", "pscDocs:lib", "dotPsci"]);
   grunt.registerTask("example", ["psc:example"]);
   grunt.registerTask("minify", ["uglify:lib"]);
-  grunt.registerTask("default", ["clean", "make", "example"]);
+  grunt.registerTask("default", ["clean", "minify", "make", "example"]);
 };

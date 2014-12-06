@@ -78,6 +78,22 @@ var Behavior = (function() {
   };
 
   /**
+   * Event.fold :: forall a b. (Event a, b, (a, b) -> b) -> Event b
+   */
+  b.Event.fold = function(e, init, f) {
+  
+    return new b.Event(function(sub) {
+
+      var result = init;
+
+      e.subscribe(function(a) {
+       
+        sub(result = f(a, result)); 
+      });
+    });
+  };
+
+  /**
    * Live :: forall a. (-> a) -> Live a
    */
   b.Live = function(get) {
@@ -110,11 +126,11 @@ var Behavior = (function() {
   /**
    * Behavior.map :: forall a b. (Behavior a, a -> b) -> Behavior b
    */
-  b.Behavior.map = function(b, f) {
+  b.Behavior.map = function(b1, f) {
 
     return new b.Behavior(function() {
       
-      var live = b.subscribe();
+      var live = b1.subscribe();
       
       return new b.Live(function() {
         
@@ -157,6 +173,22 @@ var Behavior = (function() {
       return new b.Live(function() {
 
         return latest;
+      });
+    });
+  };
+
+  /**
+   * Behavior.sample :: forall a b c. (Behavior a, Event b, (a, b) -> c) -> Event c
+   */
+  b.Behavior.sample = function(b1, e, f) {
+    
+    return new b.Event(function(sub) {
+     
+      var live = b1.subscribe(); 
+
+      e.subscribe(function(value) {
+
+        sub(f(live.get(), value));
       });
     });
   };

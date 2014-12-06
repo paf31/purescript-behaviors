@@ -25,6 +25,10 @@
 
 ### Values
 
+    sample :: forall a b c. (a -> b -> c) -> Behavior a -> Event b -> Event c
+
+    sample' :: forall a b. Behavior a -> Event b -> Event a
+
     step :: forall a. a -> Event a -> Behavior a
 
 
@@ -45,6 +49,8 @@
 
 
 ### Values
+
+    fold :: forall a b. (a -> b -> b) -> Event a -> b -> Event b
 
     subscribe :: forall eff a r. (a -> Eff (frp :: FRP | eff) r) -> Event a -> Eff (frp :: FRP | eff) Unit
 

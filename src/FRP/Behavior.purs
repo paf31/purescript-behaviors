@@ -1,6 +1,8 @@
 module FRP.Behavior
   ( Behavior()
   , step
+  , sample
+  , sample'
   ) where
 
 import FRP
@@ -49,3 +51,17 @@ foreign import step """
   }
   """ :: forall a. a -> Event a -> Behavior a
 
+foreign import sample """
+  function sample(f) {
+    return function(b) {
+      return function(e) {
+        return Behavior.Behavior.sample(b, e, function(a, b) {
+          return f(a)(b);
+        });
+      };
+    };
+  }
+  """ :: forall a b c. (a -> b -> c) -> Behavior a -> Event b -> Event c
+
+sample' :: forall a b. Behavior a -> Event b -> Event a
+sample' = sample const

@@ -1,5 +1,6 @@
 module FRP.Event
   ( Event()
+  , fold
   , subscribe
   ) where
 
@@ -39,6 +40,18 @@ instance applyEvent :: Apply Event where
 
 instance applicativeEvent :: Applicative Event where
   pure = pureImpl
+
+foreign import fold """
+  function fold(f) {
+    return function(e) {
+      return function(b) {
+        return Behavior.Event.fold(e, b, function(a, b) {
+          return f(a)(b); 
+        });
+      };
+    };
+  }
+  """ :: forall a b. (a -> b -> b) -> Event a -> b -> Event b
 
 foreign import subscribe """
   function subscribe(f) {
