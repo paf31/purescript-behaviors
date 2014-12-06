@@ -7,13 +7,12 @@ import FRP.Behavior
 
 import Control.Monad.Eff
 
-foreign import display """
-  function display(s) {
-    return function() {
-      document.body.innerText = s;
-    };
-  }
-  """ :: forall eff. String -> Eff eff Unit
+foreign import display 
+  "function display(s) {\
+  \  return function() {\
+  \    document.body.innerText = s;\
+  \  };\
+  \}" :: forall eff. String -> Eff eff Unit
 
 every :: Number -> Event Number
 every n = fold (\_ n -> n + 1) (interval n) 0
