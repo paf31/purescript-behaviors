@@ -2,6 +2,7 @@ module FRP.Event
   ( Event()
   , fold
   , filter
+  , count
   , subscribe
   ) where
 
@@ -64,6 +65,9 @@ foreign import fold """
     };
   }
   """ :: forall a b. (a -> b -> b) -> Event a -> b -> Event b
+
+count :: forall a. Event a -> Event Number
+count s = fold (\_ n -> n + 1) s 0
 
 foreign import filter """
   function filter(p) {

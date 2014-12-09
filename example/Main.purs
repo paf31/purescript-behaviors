@@ -15,7 +15,7 @@ foreign import display
   \}" :: forall eff. String -> Eff eff Unit
 
 every :: Number -> Event Number
-every n = fold (\_ n -> n + 1) (interval n) 0
+every n = count (interval n)
 
 tick :: Number -> Number -> Behavior Number
 tick n max = (\n -> n % max) <$> step 0 (every n)

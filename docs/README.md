@@ -52,6 +52,8 @@
 
 ### Values
 
+    count :: forall a. Event a -> Event Number
+
     filter :: forall a. (a -> Boolean) -> Event a -> Event a
 
     fold :: forall a b. (a -> b -> b) -> Event a -> b -> Event b
