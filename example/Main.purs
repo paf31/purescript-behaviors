@@ -17,22 +17,26 @@ foreign import display
 every :: Number -> Event Number
 every n = fold (\_ n -> n + 1) (interval n) 0
 
-tick :: Number -> Behavior Number
-tick n = step 0 (every n)
+tick :: Number -> Number -> Behavior Number
+tick n max = (\n -> n % max) <$> step 0 (every n)
 
-time = toTime <$> tick millis
-              <*> tick seconds
-              <*> tick minutes
-              <*> tick hours
+time :: Behavior String
+time = toTime <$> tick cents  100
+              <*> tick seconds 60
+              <*> tick minutes 60
+              <*> tick hours   24
   where
-  millis = 1
+  cents = 10
   seconds = 1000
   minutes = seconds * 60
   hours = minutes * 60
 
-  toTime ms ss mm hh = show hh <> ":" <> 
-                       show mm <> ":" <> 
-                       show ss <> "." <> 
-                       show ms
+  toTime cs ss mm hh = pad hh <> ":" <> 
+                       pad mm <> ":" <> 
+                       pad ss <> "." <> 
+                       pad cs
+
+  pad n | n < 10 = "0" <> show n
+        | otherwise = show n
 
 main = display `subscribe` (sample' time (every 20))

@@ -47,8 +47,12 @@
 
     instance functorEvent :: Functor Event
 
+    instance semigroupEvent :: Semigroup (Event a)
+
 
 ### Values
+
+    filter :: forall a. (a -> Boolean) -> Event a -> Event a
 
     fold :: forall a b. (a -> b -> b) -> Event a -> b -> Event b
 

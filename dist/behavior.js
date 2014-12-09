@@ -94,6 +94,35 @@ var Behavior = (function() {
   };
 
   /**
+   * Event.filter :: forall a. (Event a, a -> Boolean) -> Event a
+   */
+  b.Event.filter = function(e, p) {
+
+    return new b.Event(function(sub) {
+
+      e.subscribe(function(a) {
+       
+        if (p(a)) {
+
+          sub(a);
+        } 
+      });
+    });
+  };
+
+  /**
+   * Event.merge :: forall a. (Event a, Event a) -> Event a
+   */
+  b.Event.merge = function(e1, e2) {
+
+    return new b.Event(function(sub) {
+     
+      e1.subscribe(sub);
+      e2.subscribe(sub); 
+    });
+  };
+
+  /**
    * Live :: forall a. (-> a) -> Live a
    */
   b.Live = function(get) {

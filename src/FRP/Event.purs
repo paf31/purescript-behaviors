@@ -1,6 +1,7 @@
 module FRP.Event
   ( Event()
   , fold
+  , filter
   , subscribe
   ) where
 
@@ -32,6 +33,14 @@ foreign import applyImpl """
   }
   """ :: forall a b. Event (a -> b) -> Event a -> Event b
 
+foreign import mergeImpl """
+  function mergeImpl(e1) {
+    return function(e2) {
+      return Behavior.Event.merge(e1, e2);
+    };
+  }
+  """ :: forall a. Event a -> Event a -> Event a
+
 instance functorEvent :: Functor Event where
   (<$>) = mapImpl
 
@@ -40,6 +49,9 @@ instance applyEvent :: Apply Event where
 
 instance applicativeEvent :: Applicative Event where
   pure = pureImpl
+
+instance semigroupEvent :: Semigroup (Event a) where
+  (<>) = mergeImpl
 
 foreign import fold """
   function fold(f) {
@@ -52,6 +64,14 @@ foreign import fold """
     };
   }
   """ :: forall a b. (a -> b -> b) -> Event a -> b -> Event b
+
+foreign import filter """
+  function filter(p) {
+    return function(e) {
+      return Behavior.Event.filter(e, p);
+    };
+  }
+  """ :: forall a. (a -> Boolean) -> Event a -> Event a
 
 foreign import subscribe """
   function subscribe(f) {
