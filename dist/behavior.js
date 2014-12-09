@@ -36,28 +36,34 @@ var Behavior = (function() {
   };
 
   /**
-   * Event.apply :: forall a b. (Event (a -> b), Event a) -> Event b 
+   * Event.zip :: forall a b c. (Event a, Event b, (a, b) -> c) -> Event c
    */
-  b.Event.apply = function(e1, e2) {
+  b.Event.zip = function(e1, e2, f) {
     
-    return new b.Event(function (sub) {
-      
-      var f_latest, x_latest;
-      var f_fired = false, x_fired = false;
+    return new b.Event(function(sub) {
+     
+      var a_latest, b_latest;
+      var a_fired = false, b_fired = false;
 
-      e1.subscribe(function(f) {
-        f_latest = f;
-        f_fired = true;
-        if (x_fired) {
-          sub(f_latest(x_latest));
+      e1.subscribe(function(a) {
+        
+        a_latest = a;
+        a_fired = true;
+        
+        if (b_fired) {
+        
+          sub(f(a_latest, b_latest));
         }
       }); 
       
-      e2.subscribe(function(x) {
-        x_latest = x;
-        x_fired = true;
-        if (f_fired) {
-          sub(f_latest(x_latest));
+      e2.subscribe(function(b) {
+        
+        b_latest = b;
+        b_fired = true;
+        
+        if (a_fired) {
+        
+          sub(f(a_latest, b_latest));
         }
       }); 
     });
@@ -65,29 +71,30 @@ var Behavior = (function() {
 
   /**
    * Event.interval :: Number -> Event Number 
-   */
+   **/
   b.Event.interval = function(n) {
 
     return new b.Event(function(sub) {
 
       setInterval(function() {
-        
+
         sub(new Date().getTime());
       }, n);
     });
   };
 
+
   /**
    * Event.fold :: forall a b. (Event a, b, (a, b) -> b) -> Event b
    */
   b.Event.fold = function(e, init, f) {
-  
+
     return new b.Event(function(sub) {
 
       var result = init;
 
       e.subscribe(function(a) {
-       
+
         sub(result = f(a, result)); 
       });
     });
@@ -169,9 +176,9 @@ var Behavior = (function() {
   };
 
   /**
-   * Behavior.apply :: forall a b. (Behavior (a -> b), Behavior a) -> Behavior b
+   * Behavior.zip :: forall a b c. (Behavior a, Behavior b, (a, b) -> c) -> Behavior c
    */
-  b.Behavior.apply = function (b1, b2) {
+  b.Behavior.zip = function (b1, b2, f) {
     
     return new b.Behavior(function() {
      
@@ -180,7 +187,7 @@ var Behavior = (function() {
 
       return new b.Live(function() {
         
-        return l1.get()(l2.get());
+        return f(l1.get(), l2.get());
       });
     });
   };

@@ -31,6 +31,8 @@
 
     step :: forall a. a -> Event a -> Behavior a
 
+    zip :: forall a b c. (a -> b -> c) -> Behavior a -> Behavior b -> Behavior c
+
 
 ## Module FRP.Event
 
@@ -59,6 +61,8 @@
     fold :: forall a b. (a -> b -> b) -> Event a -> b -> Event b
 
     subscribe :: forall eff a r. (a -> Eff (frp :: FRP | eff) r) -> Event a -> Eff (frp :: FRP | eff) Unit
+
+    zip :: forall a b c. (a -> b -> c) -> Event a -> Event b -> Event c
 
 
 ## Module FRP.Event.Time

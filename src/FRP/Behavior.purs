@@ -3,10 +3,11 @@ module FRP.Behavior
   , step
   , sample
   , sample'
+  , zip
   ) where
 
 import FRP
-import FRP.Event
+import FRP.Event hiding (zip)
 
 import Control.Monad.Eff
 
@@ -26,19 +27,23 @@ foreign import mapImpl """
   }
   """ :: forall a b. (a -> b) -> Behavior a -> Behavior b
 
-foreign import applyImpl """
-  function applyImpl(f) {
-    return function (x) {
-      return Behavior.Behavior.apply(f, x);
+foreign import zip """
+  function zip(f) {
+    return function (b1) {
+      return function (b2) {
+        return Behavior.Behavior.zip(b1, b2, function(a, b) {
+          return f(a)(b);  
+        });
+      };
     };
   }
-  """ :: forall a b. Behavior (a -> b) -> Behavior a -> Behavior b
+  """ :: forall a b c. (a -> b -> c) -> Behavior a -> Behavior b -> Behavior c
 
 instance functorBehavior :: Functor Behavior where
   (<$>) = mapImpl
 
 instance applyBehavior :: Apply Behavior where
-  (<*>) = applyImpl
+  (<*>) = zip ($)
 
 instance applicativeBehavior :: Applicative Behavior where
   pure = pureImpl

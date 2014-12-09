@@ -1,7 +1,7 @@
 module Main where
 
 import FRP
-import FRP.Event
+import FRP.Event hiding (zip)
 import FRP.Event.Time
 import FRP.Behavior
 

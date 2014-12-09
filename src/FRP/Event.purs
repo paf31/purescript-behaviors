@@ -1,5 +1,6 @@
 module FRP.Event
   ( Event()
+  , zip
   , fold
   , filter
   , count
@@ -26,13 +27,17 @@ foreign import mapImpl """
   }
   """ :: forall a b. (a -> b) -> Event a -> Event b
 
-foreign import applyImpl """
-  function applyImpl(f) {
-    return function (x) {
-      return Behavior.Event.apply(f, x);
+foreign import zip """
+  function zip(f) {
+    return function (e1) {
+      return function (e2) {
+        return Behavior.Event.zip(e1, e2, function(a, b) {
+          return f(a)(b);  
+        });
+      };
     };
   }
-  """ :: forall a b. Event (a -> b) -> Event a -> Event b
+  """ :: forall a b c. (a -> b -> c) -> Event a -> Event b -> Event c
 
 foreign import mergeImpl """
   function mergeImpl(e1) {
@@ -46,7 +51,7 @@ instance functorEvent :: Functor Event where
   (<$>) = mapImpl
 
 instance applyEvent :: Apply Event where
-  (<*>) = applyImpl
+  (<*>) = zip ($)
 
 instance applicativeEvent :: Applicative Event where
   pure = pureImpl
