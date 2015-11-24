@@ -231,3 +231,5 @@ var Behavior = (function() {
 
   return b;
 })();
+
+module.exports = Behavior;

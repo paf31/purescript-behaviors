@@ -5,20 +5,18 @@ import FRP.Event hiding (zip)
 import FRP.Event.Time
 import FRP.Behavior
 
+import Prelude
+import Math
+import Data.Int (toNumber)
 import Control.Monad.Eff
 
-foreign import display 
-  "function display(s) {\
-  \  return function() {\
-  \    document.body.innerText = s;\
-  \  };\
-  \}" :: forall eff. String -> Eff eff Unit
+foreign import display :: forall eff. String -> Eff eff Unit
 
-every :: Number -> Event Number
+every :: Int -> Event Int
 every n = count (interval n)
 
-tick :: Number -> Number -> Behavior Number
-tick n max = (\n -> n % max) <$> step 0 (every n)
+tick :: Int -> Int -> Behavior Number
+tick n max = (\n -> toNumber n % toNumber max) <$> step 0 (every n)
 
 time :: Behavior String
 time = toTime <$> tick cents  100
@@ -36,7 +34,8 @@ time = toTime <$> tick cents  100
                        pad ss <> "." <> 
                        pad cs
 
-  pad n | n < 10 = "0" <> show n
+  pad n | n < 10.0 = "0" <> show n
         | otherwise = show n
 
+main :: forall eff. Eff (frp :: FRP | eff) Unit
 main = display `subscribe` (sample' time (every 20))
