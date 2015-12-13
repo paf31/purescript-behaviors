@@ -4,8 +4,4 @@ module FRP.Event.Time
 
 import FRP.Event
 
-foreign import interval """
-  function interval(n) {
-    return Behavior.Event.interval(n);
-  }
-  """ :: Number -> Event Number 
+foreign import interval :: Int -> Event Int
