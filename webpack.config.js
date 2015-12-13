@@ -16,7 +16,7 @@ var output = 'output';
 
 var modulesDirectories = [
   'node_modules',
-  'dist',
+  'src',
   'bower_components/purescript-prelude/src'
 ];
 

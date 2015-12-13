@@ -6,7 +6,7 @@
   "scripts": {
     "make": "pulp build && pulp docs",
     "test": "npm run clean && mkdir -p output && webpack",
-    "clean": "rm -r output"
+    "clean": "rm -rf output"
   },
   "private": true,
   "author": "Phil Freeman",
