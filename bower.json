@@ -16,6 +16,10 @@
     "Gruntfile.js",
     "package.json"
   ],
+  "repository": {                                               
+    "type": "git",
+    "url": "git://github.com/paf31/purescript-behaviors.git" 
+  },
   "dependencies": {
     "purescript-prelude": "~0.1.3",
     "purescript-eff": "~0.1.2"
