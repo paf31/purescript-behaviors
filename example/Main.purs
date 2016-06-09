@@ -1,14 +1,14 @@
-module Main where
-
-import FRP
-import FRP.Event hiding (zip)
-import FRP.Event.Time
-import FRP.Behavior
+module Test.Main where
 
 import Prelude
-import Math
+
+import Control.Monad.Eff (Eff)
 import Data.Int (toNumber)
-import Control.Monad.Eff
+import FRP (FRP)
+import FRP.Behavior (Behavior, sample', step)
+import FRP.Event (Event, subscribe, count)
+import FRP.Event.Time (interval)
+import Math ((%))
 
 foreign import display :: forall eff. String -> Eff eff Unit
 
@@ -29,9 +29,9 @@ time = toTime <$> tick cents  100
   minutes = seconds * 60
   hours = minutes * 60
 
-  toTime cs ss mm hh = pad hh <> ":" <> 
-                       pad mm <> ":" <> 
-                       pad ss <> "." <> 
+  toTime cs ss mm hh = pad hh <> ":" <>
+                       pad mm <> ":" <>
+                       pad ss <> "." <>
                        pad cs
 
   pad n | n < 10.0 = "0" <> show n

@@ -8,9 +8,9 @@ data Behavior :: * -> *
 
 ##### Instances
 ``` purescript
-instance functorBehavior :: Functor Behavior
-instance applyBehavior :: Apply Behavior
-instance applicativeBehavior :: Applicative Behavior
+Functor Behavior
+Apply Behavior
+Applicative Behavior
 ```
 
 #### `zip`

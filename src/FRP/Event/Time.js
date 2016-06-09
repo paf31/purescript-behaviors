@@ -1,4 +1,4 @@
-// module FRP.Event.Time
+"use strict";
 
 var Event = require('FRP/Event').Event;
 

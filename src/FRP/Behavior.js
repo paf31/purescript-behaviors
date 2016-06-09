@@ -1,4 +1,4 @@
-// module FRP.Behavior
+"use strict";
 
 var Event = require('FRP/Event').Event;
 
@@ -10,7 +10,7 @@ var Live = function(get) {
   this.get = get;
 };
 
-exports.Live = Live;
+module.exports.Live = Live;
 
 /**
  * Behavior :: forall a. (-> Live a) -> Behavior a
@@ -26,11 +26,11 @@ var Behavior = function(subscribe) {
 Behavior.pure = function(a) {
 
   return new Behavior(function() {
-   
+
     return new Live(function() {
-      
+
       return a;
-    }); 
+    });
   });
 };
 
@@ -40,13 +40,13 @@ Behavior.pure = function(a) {
 Behavior.map = function(b1, f) {
 
   return new Behavior(function() {
-    
+
     var live = b1.subscribe();
-    
+
     return new Live(function() {
-      
+
       return f(live.get());
-    }); 
+    });
   });
 };
 
@@ -54,14 +54,14 @@ Behavior.map = function(b1, f) {
  * Behavior.zip :: forall a b c. (Behavior a, Behavior b, (a, b) -> c) -> Behavior c
  */
 Behavior.zip = function (b1, b2, f) {
-  
+
   return new Behavior(function() {
-   
+
     var l1 = b1.subscribe();
     var l2 = b2.subscribe();
 
     return new Live(function() {
-      
+
       return f(l1.get(), l2.get());
     });
   });
@@ -77,7 +77,7 @@ Behavior.step = function(a, e) {
     var latest = a;
 
     e.subscribe(function(value) {
-     
+
       latest = value;
     });
 
@@ -92,10 +92,10 @@ Behavior.step = function(a, e) {
  * Behavior.sample :: forall a b c. (Behavior a, Event b, (a, b) -> c) -> Event c
  */
 Behavior.sample = function(b1, e, f) {
-  
+
   return new Event(function(sub) {
-   
-    var live = b1.subscribe(); 
+
+    var live = b1.subscribe();
 
     e.subscribe(function(value) {
 
@@ -104,8 +104,7 @@ Behavior.sample = function(b1, e, f) {
   });
 };
 
-exports.Behavior = Behavior;
-
+module.exports.Behavior = Behavior;
 
 exports.pureImpl = function (a) {
   return Behavior.pure(a);
@@ -121,7 +120,7 @@ exports.zip = function (f) {
   return function (b1) {
     return function (b2) {
       return Behavior.zip(b1, b2, function(a, b) {
-        return f(a)(b);  
+        return f(a)(b);
       });
     };
   };

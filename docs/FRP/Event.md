@@ -8,10 +8,10 @@ data Event :: * -> *
 
 ##### Instances
 ``` purescript
-instance functorEvent :: Functor Event
-instance applyEvent :: Apply Event
-instance applicativeEvent :: Applicative Event
-instance semigroupEvent :: Semigroup (Event a)
+Functor Event
+Apply Event
+Applicative Event
+Semigroup (Event a)
 ```
 
 #### `zip`

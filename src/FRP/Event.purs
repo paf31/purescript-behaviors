@@ -7,10 +7,10 @@ module FRP.Event
   , subscribe
   ) where
 
-import FRP
-
 import Prelude
-import Control.Monad.Eff
+
+import Control.Monad.Eff (Eff)
+import FRP (FRP)
 
 foreign import data Event :: * -> *
 
@@ -42,4 +42,3 @@ count s = fold (\_ n -> n + 1) s 0
 foreign import filter :: forall a. (a -> Boolean) -> Event a -> Event a
 
 foreign import subscribe :: forall eff a r. (a -> Eff (frp :: FRP | eff) r) -> Event a -> Eff (frp :: FRP | eff) Unit
- 

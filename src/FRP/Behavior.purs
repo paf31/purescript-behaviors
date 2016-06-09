@@ -6,9 +6,8 @@ module FRP.Behavior
   , zip
   ) where
 
-import FRP.Event hiding (zip)
-
 import Prelude
+import FRP.Event (Event)
 
 foreign import data Behavior :: * -> *
 

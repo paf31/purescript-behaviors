@@ -1,4 +1,4 @@
-// module Main
+"use strict";
 
 exports.display = function (s) {
   return function() {
