@@ -1,7 +1,9 @@
 "use strict";
 
-var Event = require('FRP/Event').Event;
-
 exports.interval = function (n) {
-  return Event.interval(n);
+  return function(sub) {
+    setInterval(function() {
+      sub(new Date().getTime());
+    }, n);
+  };
 };
