@@ -16,6 +16,7 @@
     "Gruntfile.js",
     "package.json"
   ],
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git://github.com/paf31/purescript-behaviors.git"
