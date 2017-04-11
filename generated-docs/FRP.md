@@ -3,7 +3,7 @@
 #### `FRP`
 
 ``` purescript
-data FRP :: !
+data FRP :: Effect
 ```
 
 

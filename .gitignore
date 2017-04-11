@@ -2,7 +2,7 @@
 !/.bowerrc
 !/.gitignore
 /output/
-/js/
+/html/index.js
 /node_modules/
 /bower_components/
 /tmp/

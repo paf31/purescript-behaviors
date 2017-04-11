@@ -3,7 +3,7 @@
 #### `Event`
 
 ``` purescript
-data Event :: * -> *
+data Event :: Type -> Type
 ```
 
 ##### Instances

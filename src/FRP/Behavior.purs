@@ -9,7 +9,7 @@ module FRP.Behavior
 import Prelude
 import FRP.Event (Event)
 
-foreign import data Behavior :: * -> *
+foreign import data Behavior :: Type -> Type
 
 foreign import pureImpl :: forall a. a -> Behavior a
 

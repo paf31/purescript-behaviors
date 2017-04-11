@@ -1,3 +1,5 @@
 module FRP where
 
-foreign import data FRP :: !
+import Control.Monad.Eff (kind Effect)
+
+foreign import data FRP :: Effect

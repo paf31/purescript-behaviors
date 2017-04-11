@@ -1,19 +1,14 @@
 {
-  "name": "purescript-behaviors",
-  "version": "0.1.0",
-  "description": "A simple implementation of FRP which separates events and behaviors",
-  "main": "",
-  "scripts": {
-    "make": "pulp build && pulp docs",
-    "test": "npm run clean && mkdir -p output && webpack",
-    "clean": "rm -rf output"
-  },
   "private": true,
-  "author": "Phil Freeman",
-  "license": "MIT",
+  "scripts": {
+    "clean": "rimraf output && rimraf .pulp-cache",
+    "build": "pulp build",
+    "example": "pulp test -r cat > html/index.js && open html/index.html"
+  },
   "devDependencies": {
-    "purs-loader": "^2.0.0-rc.0",
-    "uglify-js": "^2.6.1",
-    "webpack": "^1.12.9"
+    "pulp": "^11.0.0",
+    "purescript-psa": "^0.5.0",
+    "purescript": "^0.11.1",
+    "rimraf": "^2.5.4"
   }
 }

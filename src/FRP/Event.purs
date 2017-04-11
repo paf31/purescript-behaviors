@@ -1,5 +1,5 @@
 module FRP.Event
-  ( Event()
+  ( Event
   , zip
   , fold
   , filter
@@ -12,7 +12,7 @@ import Prelude
 import Control.Monad.Eff (Eff)
 import FRP (FRP)
 
-foreign import data Event :: * -> *
+foreign import data Event :: Type -> Type
 
 foreign import pureImpl :: forall a. a -> Event a
 
