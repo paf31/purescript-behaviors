@@ -1,9 +1,9 @@
 .*
+!/.travis.yml
 !/.bowerrc
 !/.gitignore
+/html/index.js
 /output/
 /html/index.js
 /node_modules/
 /bower_components/
-/tmp/
-npm-debug.log
