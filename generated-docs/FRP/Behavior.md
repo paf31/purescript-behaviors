@@ -3,7 +3,7 @@
 #### `Behavior`
 
 ``` purescript
-data Behavior :: * -> *
+data Behavior :: Type -> Type
 ```
 
 ##### Instances

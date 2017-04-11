@@ -22,11 +22,11 @@
     "url": "git://github.com/paf31/purescript-behaviors.git"
   },
   "dependencies": {
-    "purescript-prelude": "^1.0.0",
-    "purescript-eff": "^1.0.0"
+    "purescript-prelude": "^3.0.0",
+    "purescript-eff": "^3.0.0"
   },
   "devDependencies": {
     "purescript-math": "^2.0.0",
-    "purescript-integers": "^1.0.0"
+    "purescript-integers": "^3.0.0"
   }
 }
