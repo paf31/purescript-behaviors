@@ -1,34 +1,37 @@
 module FRP.Behavior
-  ( Behavior()
+  ( Behavior
   , step
   , sample
   , sample'
-  , zip
   ) where
 
 import Prelude
 import FRP.Event (Event)
 
-foreign import data Behavior :: Type -> Type
+-- | A `Behavior` acts like a continuous function of time.
+-- |
+-- | We can construct a sample a `Behavior` from some `Event`, combine `Behavior`s
+-- | using `Applicative`, and sample a final `Behavior` on some other `Event`.
+newtype Behavior a = Behavior (forall b. Event (a -> b) -> Event b)
 
-foreign import pureImpl :: forall a. a -> Behavior a
+-- | Create a `Behavior` which is updated when an `Event` fires, by providing
+-- | an initial value.
+step :: forall a. a -> Event a -> Behavior a
+step a e = Behavior \f -> f <*> (pure a <> e)
 
-foreign import mapImpl :: forall a b. (a -> b) -> Behavior a -> Behavior b
+-- | Sample a `Behavior` on some `Event`.
+sample :: forall a b c. (a -> b -> c) -> Behavior a -> Event b -> Event c
+sample f (Behavior b) e = b (flip f <$> e)
 
-foreign import zip :: forall a b c. (a -> b -> c) -> Behavior a -> Behavior b -> Behavior c
-
-instance functorBehavior :: Functor Behavior where
-  map = mapImpl
-
-instance applyBehavior :: Apply Behavior where
-  apply = zip ($)
-
-instance applicativeBehavior :: Applicative Behavior where
-  pure = pureImpl
-
-foreign import step :: forall a. a -> Event a -> Behavior a
-
-foreign import sample :: forall a b c. (a -> b -> c) -> Behavior a -> Event b -> Event c
-
+-- | Sample a `Behavior` on some `Event`, discarding the event's payload.
 sample' :: forall a b. Behavior a -> Event b -> Event a
 sample' = sample const
+
+instance functorBehavior :: Functor Behavior where
+  map f (Behavior b) = Behavior \e -> b (map (_ <<< f) e)
+
+instance applyBehavior :: Apply Behavior where
+  apply (Behavior f) (Behavior a) = Behavior \e -> a (f (compose <$> e))
+
+instance applicativeBehavior :: Applicative Behavior where
+  pure a = Behavior \e -> (_ $ a) <$> e

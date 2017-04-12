@@ -3,20 +3,18 @@ module Test.Main where
 import Prelude
 
 import Control.Monad.Eff (Eff)
-import Data.Int (toNumber)
 import FRP (FRP)
 import FRP.Behavior (Behavior, sample', step)
 import FRP.Event (Event, subscribe, count)
 import FRP.Event.Time (interval)
-import Math ((%))
 
 foreign import display :: forall eff. String -> Eff eff Unit
 
 every :: Int -> Event Int
 every n = count (interval n)
 
-tick :: Int -> Int -> Behavior Number
-tick n max = (\m -> toNumber m % toNumber max) <$> step 0 (every n)
+tick :: Int -> Int -> Behavior Int
+tick n max = (\m -> m `mod` max) <$> step 0 (every n)
 
 time :: Behavior String
 time =
@@ -35,7 +33,7 @@ time =
                          pad ss <> "." <>
                          pad cs
 
-    pad n | n < 10.0 = "0" <> show n
+    pad n | n < 10 = "0" <> show n
           | otherwise = show n
 
 main :: forall eff. Eff (frp :: FRP | eff) Unit
