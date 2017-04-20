@@ -23,7 +23,8 @@
   },
   "dependencies": {
     "purescript-prelude": "^3.0.0",
-    "purescript-eff": "^3.0.0"
+    "purescript-eff": "^3.0.0",
+    "purescript-sets": "^3.0.0"
   },
   "devDependencies": {
     "purescript-math": "^2.0.0",
