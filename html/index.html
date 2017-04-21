@@ -2,9 +2,31 @@
 <html>
   <head>
     <title>Behaviors Example</title>
+    <style>
+      html, body {
+        margin: 0;
+      }
 
-    <script type="text/javascript" src="index.js"></script>
+      #canvas {
+        position: absolute;
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: 100%;
+      }
+    </style>
   </head>
   <body>
+    <canvas id="canvas"></canvas>
+    <script type="text/javascript">
+      var canvas = document.getElementById('canvas');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      window.onresize = function() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      };
+    </script>
+    <script type="text/javascript" src="index.js"></script>
   </body>
 </html>

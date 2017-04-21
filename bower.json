@@ -28,6 +28,7 @@
   },
   "devDependencies": {
     "purescript-math": "^2.0.0",
-    "purescript-integers": "^3.0.0"
+    "purescript-integers": "^3.0.0",
+    "purescript-drawing": "^3.0.0"
   }
 }
