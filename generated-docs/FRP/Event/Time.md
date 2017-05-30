@@ -8,6 +8,14 @@ interval :: Int -> Event Int
 
 Create an event which fires every specified number of milliseconds.
 
+#### `animationFrame`
+
+``` purescript
+animationFrame :: Event Unit
+```
+
+Create an event which fires every frame (using `requestAnimationFrame`).
+
 #### `withTime`
 
 ``` purescript
