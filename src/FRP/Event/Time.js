@@ -8,6 +8,16 @@ exports.interval = function (n) {
   };
 };
 
+exports.animationFrame = function(sub) {
+  var loop = function() {
+    window.requestAnimationFrame(function() {
+      sub();
+      loop();
+    });
+  };
+  loop();
+};
+
 exports.withTime = function (e) {
   return function(sub) {
     e(function(a) {

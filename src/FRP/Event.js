@@ -110,3 +110,19 @@ exports.subscribe = function (e) {
     };
   };
 };
+
+exports.create = function () {
+  var subs = [];
+  return {
+    event: function(sub) {
+      subs.push(sub);
+    },
+    push: function(a) {
+      return function() {
+        for (var i = 0; i < subs.length; i++) {
+          subs[i](a);
+        }
+      };
+    }
+  };
+};

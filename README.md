@@ -1,10 +1,9 @@
 # purescript-behaviors
 
-An implementation of FRP which separates discrete values ("events") from
-continuous values ("behaviors").
-
 - [Example](test/Main.purs)
 - [API Documentation](generated-docs/FRP)
+
+![Example](screenshots/1.gif)
 
 ## Building
 
@@ -13,19 +12,39 @@ pulp build
 npm run example
 ```
 
-## Notes
+## Introduction
 
-This library defines two type constructors:
+Push-pull FRP is concerned with _events_ and _behaviors_. Events are
+values which occur discretely over time, and behaviors act like continuous
+functions of time.
 
-- `Event`, which models discrete events like mouse clicks and key presses, and
-- `Behavior`, which models continuous functions of time, like the current time or the mouse position.
+Why bother with behaviors at all, when the machines we work with deal with events
+such as interrupts at the most basic level?
 
-The `FRP.Event.*` and `FRP.Behavior.*` modules provide several ways to construct
-events and behaviors, and these can be further combined by using the type class
-instances and functions which are provided.
+Well, we can work with continuous functions of time in a variety of ways, including by
+differentiation and integration. Also, working with a conceptually infinitely-dense
+representation means that we can defer the choice of sampling interval until we are
+ready to render our results.
 
-Ultimately, we are interested in sampling events, which can be done using the `subscribe` function.
-However, behaviors can provide a more useful model for certain problems, since they are defined
-at every time, and support different operations such as integration and differentiation. A behavior
-must be sampled on some event in order to be useful, but the choice of sampling interval is delayed
-until as late as possible, which allows us to treat behaviors like actual functions of time.
+This library takes a slightly novel approach by constructing behaviors from events.
+
+```purescript
+newtype Behavior a = Behavior (forall b. Event (a -> b) -> Event b)
+```
+
+Here, a `Behavior` is constructed directly from its sampling function.
+The various functions which work with this representation can delay the choice of
+sampling interval for as long as possible, but ultimately this `Behavior` is
+equivalent to working with events directly, albeit with alternative, function-like
+instances.
+
+This representation has the correct type class instances, and supports operations such
+as integration, differentiation and even recursion, which means we can use it to solve
+interactive differential equations. For example, here is an exponential function
+computed as the solution of a differential equation:
+
+```purescript
+exp = fixB 1.0 \b -> integrate 1.0 time ((-2.0 * _) <$> b)
+```
+
+See the [example project](test/Main.purs) for a more interesting, interactive example.

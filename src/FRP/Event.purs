@@ -10,6 +10,7 @@ module FRP.Event
   , sampleOn
   , sampleOn_
   , subscribe
+  , create
   ) where
 
 import Prelude
@@ -108,3 +109,11 @@ foreign import subscribe
    . Event a
   -> (a -> Eff (frp :: FRP | eff) r)
   -> Eff (frp :: FRP | eff) Unit
+
+-- | Create an event and a function which supplies a value to that event.
+foreign import create
+  :: forall eff a
+   . Eff (frp :: FRP | eff)
+         { event :: Event a
+         , push :: a -> Eff (frp :: FRP | eff) Unit
+         }

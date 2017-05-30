@@ -111,4 +111,12 @@ subscribe :: forall eff a r. Event a -> (a -> Eff (frp :: FRP | eff) r) -> Eff (
 
 Subscribe to an `Event` by providing a callback.
 
+#### `create`
+
+``` purescript
+create :: forall eff a. Eff (frp :: FRP | eff) { event :: Event a, push :: a -> Eff (frp :: FRP | eff) Unit }
+```
+
+Create an event and a function which supplies a value to that event.
+
 
