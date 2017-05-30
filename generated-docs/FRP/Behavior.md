@@ -128,7 +128,7 @@ differentiated takes values in the same field used to represent time.
 #### `fixB`
 
 ``` purescript
-fixB :: forall a. Show a => a -> (Behavior a -> Behavior a) -> Behavior a
+fixB :: forall a. a -> (Behavior a -> Behavior a) -> Behavior a
 ```
 
 Compute a fixed point

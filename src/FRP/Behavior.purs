@@ -133,7 +133,7 @@ derivative' :: forall t. Field t => Behavior t -> Behavior t -> Behavior t
 derivative' = derivative (_ $ id)
 
 -- | Compute a fixed point
-fixB :: forall a. Show a => a -> (Behavior a -> Behavior a) -> Behavior a
+fixB :: forall a. a -> (Behavior a -> Behavior a) -> Behavior a
 fixB a f = behavior \s -> unsafePerformEff do
   { event, push } <- create
   let b = f (step a event)
