@@ -40,4 +40,11 @@ instances.
 
 This representation has the correct type class instances, and supports operations such
 as integration, differentiation and even recursion, which means we can use it to solve
-interactive differential equations. See the [example project](test/Main.purs).
+interactive differential equations. For example, here is an exponential function
+computed as the solution of a differential equation:
+
+```purescript
+exp = fixB 1.0 \b -> integrate 1.0 time ((-2.0 * _) <$> b)
+```
+
+See the [example project](test/Main.purs) for a more interesting, interactive example.
