@@ -1,8 +1,7 @@
 module Test.Main where
 
 import Prelude
-import FRP.Behavior.Mouse as Mouse
-import FRP.Behavior.Time as Time
+
 import Color (lighten)
 import Color.Scheme.MaterialDesign (blueGrey)
 import Control.Monad.Eff (Eff)
@@ -14,6 +13,9 @@ import Data.Set (isEmpty)
 import FRP (FRP)
 import FRP.Behavior (Behavior, animate, derivative', fixB, integral')
 import FRP.Behavior.Mouse (buttons)
+import FRP.Behavior.Mouse as Mouse
+import FRP.Behavior.Time as Time
+import FRP.Event (Event)
 import Global (infinity)
 import Graphics.Canvas (CANVAS, getCanvasElementById, getCanvasHeight, getCanvasWidth, getContext2D, setCanvasHeight, setCanvasWidth)
 import Graphics.Drawing (Drawing, circle, fillColor, filled, lineWidth, outlineColor, outlined, rectangle, render, scale, translate)
@@ -21,7 +23,7 @@ import Partial.Unsafe (unsafePartial)
 
 type Circle = { x :: Number, y :: Number, size :: Number }
 
-scene :: { w :: Number, h :: Number } -> Behavior Drawing
+scene :: { w :: Number, h :: Number } -> Behavior Event Drawing
 scene { w, h } = pure background <> map renderCircles circles where
   background :: Drawing
   background = filled (fillColor blueGrey) (rectangle 0.0 0.0 w h)
@@ -39,7 +41,7 @@ scene { w, h } = pure background <> map renderCircles circles where
   renderCircles :: Array Circle -> Drawing
   renderCircles = foldMap renderCircle
 
-  seconds :: Behavior Number
+  seconds :: Behavior Event Number
   seconds = map ((_ / 1000.0) <<< toNumber) Time.millisSinceEpoch
 
   -- `swell` is an interactive function of time defined by a differential equation:
@@ -52,13 +54,13 @@ scene { w, h } = pure background <> map renderCircles circles where
   -- the mouse is pressed or not.
   --
   -- We can solve the differential equation using an integral and a fixed point.
-  swell :: Behavior Number
+  swell :: Behavior Event Number
   swell = fixB 2.0 \b ->
     let f bs s ds | isEmpty bs = -8.0 * (s - 1.0) - ds * 2.0
                   | otherwise = 2.0 * (4.0 - s) in
     integral' 2.0 seconds (integral' 0.0 seconds (f <$> buttons <*> b <*> derivative' seconds b))
 
-  circles :: Behavior (Array Circle)
+  circles :: Behavior Event (Array Circle)
   circles = toCircles <$> Mouse.position <*> swell where
     toCircles m sw =
         sortBy (comparing (\{ x, y } -> -(dist x y m))) do

@@ -3,7 +3,7 @@
 #### `millisSinceEpoch`
 
 ``` purescript
-millisSinceEpoch :: Behavior Int
+millisSinceEpoch :: Behavior Event Int
 ```
 
 Get the current time in milliseconds since the epoch.
