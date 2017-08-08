@@ -2,8 +2,6 @@
 
 ## Denotational Semantics
 
-(a work in progress)
-
 The goal here is to define a meaning function from `Behavior`s to some semantic
 domain in such a way that type class instances pull back from the instances on the
 semantic domain, in the sense of
