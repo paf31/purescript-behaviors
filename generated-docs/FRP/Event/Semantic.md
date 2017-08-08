@@ -35,20 +35,70 @@ time -> a
 The meaning of the sampling function `b` is then the function
 
 ```purescript
-\t -> valueOf (b (Semantic (singleton t id)))
+\t -> valueOf (sample b (once t id))
 ```
 
 where
 
 ```purescript
 valueOf (Semantic (Tuple _ a : Nil)) = a
+once t a = Semantic (Tuple t a : Nil)
 ```
 
 Note that the time-preservation property ensures that the result of
 applying `b` is an event consisting of a single time point at time `t`,
 so this is indeed a well-defined function.
 
-_TODO_: check the instances and functions match the semantics
+In addition, we have this property, due to time-preservation:
+
+```
+sample b (once t f) = once t (valueOf (sample b (once t f)))
+```
+
+### Instances
+
+#### `Functor`
+
+`map` of the meaning is the meaning of `map`:
+
+```
+map f (meaning b)
+= f <<< meaning b
+= \t -> f (valueOf (sample b (once t id)))
+  {- parametricity -}
+= \t -> valueOf (sample b (map (_ <<< f) (once t id)))
+= meaning (map f b)
+```
+
+#### `Apply`
+
+`<*>` of the meanings is the meaning of `<*>`:
+
+```
+meaning (a <*> b)
+= \t -> valueOf (sample (a <*> b) (once t id))
+= \t -> valueOf (sample b (sample a (compose <$> once t id)))
+= \t -> valueOf (sample b (sample a (once t id)))
+= \t -> valueOf (sample b (sample a (once t id)))
+  {- sampling preserves times -}
+= \t -> valueOf (sample b (once t (valueOf (sample a (once t id))))
+= \t -> valueOf (sample b (once t (meaning a t)))
+  {- parametricity -}
+= \t -> meaning a t (valueOf (sample b (once t id)))
+= \t -> meaning a t (meaning b t)
+= meaning a <*> meaning b
+```
+
+#### `Applicative`
+
+The meaning of `pure` is `pure`:
+
+```
+meaning (pure a)
+= \t -> valueOf (sample (pure a) (once t id))
+= \t -> a
+= pure a
+```
 
 #### `Semantic`
 

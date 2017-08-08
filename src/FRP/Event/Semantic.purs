@@ -33,20 +33,70 @@
 -- | The meaning of the sampling function `b` is then the function
 -- |
 -- | ```purescript
--- | \t -> valueOf (b (Semantic (singleton t id)))
+-- | \t -> valueOf (sample b (once t id))
 -- | ```
 -- |
 -- | where
 -- |
 -- | ```purescript
 -- | valueOf (Semantic (Tuple _ a : Nil)) = a
+-- | once t a = Semantic (Tuple t a : Nil)
 -- | ```
 -- |
 -- | Note that the time-preservation property ensures that the result of
 -- | applying `b` is an event consisting of a single time point at time `t`,
 -- | so this is indeed a well-defined function.
 -- |
--- | _TODO_: check the instances and functions match the semantics
+-- | In addition, we have this property, due to time-preservation:
+-- |
+-- | ```
+-- | sample b (once t f) = once t (valueOf (sample b (once t f)))
+-- | ```
+-- |
+-- | ### Instances
+-- |
+-- | #### `Functor`
+-- |
+-- | `map` of the meaning is the meaning of `map`:
+-- |
+-- | ```
+-- | map f (meaning b)
+-- | = f <<< meaning b
+-- | = \t -> f (valueOf (sample b (once t id)))
+-- |   {- parametricity -}
+-- | = \t -> valueOf (sample b (map (_ <<< f) (once t id)))
+-- | = meaning (map f b)
+-- | ```
+-- |
+-- | #### `Apply`
+-- |
+-- | `<*>` of the meanings is the meaning of `<*>`:
+-- |
+-- | ```
+-- | meaning (a <*> b)
+-- | = \t -> valueOf (sample (a <*> b) (once t id))
+-- | = \t -> valueOf (sample b (sample a (compose <$> once t id)))
+-- | = \t -> valueOf (sample b (sample a (once t id)))
+-- | = \t -> valueOf (sample b (sample a (once t id)))
+-- |   {- sampling preserves times -}
+-- | = \t -> valueOf (sample b (once t (valueOf (sample a (once t id))))
+-- | = \t -> valueOf (sample b (once t (meaning a t)))
+-- |   {- parametricity -}
+-- | = \t -> meaning a t (valueOf (sample b (once t id)))
+-- | = \t -> meaning a t (meaning b t)
+-- | = meaning a <*> meaning b
+-- | ```
+-- |
+-- | #### `Applicative`
+-- |
+-- | The meaning of `pure` is `pure`:
+-- |
+-- | ```
+-- | meaning (pure a)
+-- | = \t -> valueOf (sample (pure a) (once t id))
+-- | = \t -> a
+-- | = pure a
+-- | ```
 
 module FRP.Event.Semantic
   ( Semantic(..)
@@ -57,14 +107,16 @@ import Prelude
 import Control.Alt (class Alt)
 import Control.Alternative (class Alternative, class Plus)
 import Control.Apply (lift2)
-import Data.List ((:))
+import Data.List (List(..), (:))
 import Data.List as List
 import Data.Maybe (Maybe)
 import Data.Monoid (class Monoid, mempty)
 import Data.Newtype (class Newtype)
 import Data.Traversable (mapAccumL, traverse)
 import Data.Tuple (Tuple(..), fst)
+import FRP.Behavior (Behavior, sample)
 import FRP.Event (class IsEvent)
+import Partial.Unsafe (unsafePartial)
 
 -- | The semantic domain for events
 newtype Semantic time a = Semantic (List.List (Tuple time a))
@@ -92,6 +144,14 @@ latestAt
   -> List.List (Tuple time a)
   -> Maybe (Tuple time a)
 latestAt t xs = List.last (List.takeWhile ((_ <= t) <<< fst) xs)
+
+meaning :: forall time a. Bounded time => Behavior (Semantic time) a -> time -> a
+meaning b t = unsafePartial valueOf (sample b (once t id)) where
+  valueOf :: Partial => Semantic time a -> a
+  valueOf (Semantic (Tuple _ a : Nil)) = a
+
+  once :: forall b. time -> b -> Semantic time b
+  once t1 a = Semantic (Tuple t1 a : Nil)
 
 instance applySemantic :: Ord time => Apply (Semantic time) where
   apply (Semantic xs) (Semantic ys) =
