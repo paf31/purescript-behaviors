@@ -17,6 +17,7 @@ import Prelude
 import Control.Alternative (class Alt, class Alternative, class Plus)
 import Control.Apply (lift2)
 import Control.Monad.Eff (Eff)
+import Control.MonadZero (guard)
 import Data.Maybe (Maybe(..), fromJust, isJust)
 import Data.Monoid (class Monoid, mempty)
 import FRP (FRP)
@@ -102,6 +103,11 @@ foreign import sampleOn :: forall a b. Event a -> Event (a -> b) -> Event b
 -- | the second event.
 sampleOn_ :: forall a b. Event a -> Event b -> Event a
 sampleOn_ a b = sampleOn a (b $> id)
+
+-- | Return only the events from the second stream that occur while the first
+-- | stream be true.
+when :: forall a. Event Boolean -> Event a -> Event a
+when ps = mapMaybe id <<< lift2 (\p x -> guard p $> x) ps
 
 -- | Subscribe to an `Event` by providing a callback.
 foreign import subscribe
