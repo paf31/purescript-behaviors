@@ -117,7 +117,7 @@ the second event.
 folded :: forall event a. IsEvent event => Monoid a => event a -> event a
 ```
 
-Count the number of events received.
+Combine subsequent events using a `Monoid`.
 
 #### `count`
 

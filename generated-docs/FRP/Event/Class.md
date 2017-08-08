@@ -18,7 +18,7 @@ Functions which an `Event` type should implement, so that
 folded :: forall event a. IsEvent event => Monoid a => event a -> event a
 ```
 
-Count the number of events received.
+Combine subsequent events using a `Monoid`.
 
 #### `count`
 

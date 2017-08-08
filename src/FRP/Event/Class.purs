@@ -28,7 +28,7 @@ class Alternative event <= IsEvent event where
 count :: forall event a. IsEvent event => event a -> event Int
 count s = fold (\_ n -> n + 1) s 0
 
--- | Count the number of events received.
+-- | Combine subsequent events using a `Monoid`.
 folded :: forall event a. IsEvent event => Monoid a => event a -> event a
 folded s = fold append s mempty
 
