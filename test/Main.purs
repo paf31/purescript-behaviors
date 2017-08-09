@@ -3,7 +3,8 @@ module Test.Main where
 import Prelude
 import FRP.Behavior.Mouse as Mouse
 import FRP.Behavior.Time as Time
-import Color (black, lighten, white)
+import Color (lighten)
+import Color.Scheme.MaterialDesign (blueGrey)
 import Control.Monad.Eff (Eff)
 import Data.Array (sortBy, (..))
 import Data.Foldable (foldMap)
@@ -23,7 +24,7 @@ type Circle = { x :: Number, y :: Number, size :: Number }
 scene :: { w :: Number, h :: Number } -> Behavior Drawing
 scene { w, h } = pure background <> map renderCircles circles where
   background :: Drawing
-  background = filled (fillColor white) (rectangle 0.0 0.0 w h)
+  background = filled (fillColor blueGrey) (rectangle 0.0 0.0 w h)
 
   scaleFactor :: Number
   scaleFactor = max w h / 16.0
@@ -32,7 +33,7 @@ scene { w, h } = pure background <> map renderCircles circles where
   renderCircle { x, y, size } =
     scale scaleFactor scaleFactor <<< translate x y <<< scale size size $
       outlined
-        (outlineColor (lighten (0.8 - size * 0.2) black) <> lineWidth ((1.0 + size * 2.0) / scaleFactor))
+        (outlineColor (lighten (0.2 + size * 0.2) blueGrey) <> lineWidth ((1.0 + size * 2.0) / scaleFactor))
         (circle 0.0 0.0 0.5)
 
   renderCircles :: Array Circle -> Drawing
