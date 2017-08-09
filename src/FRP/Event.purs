@@ -4,6 +4,7 @@ module FRP.Event
   , never
   , filter
   , mapMaybe
+  , mapAccum
   , count
   , folded
   , withLast
@@ -76,9 +77,9 @@ foreign import fold :: forall a b. (a -> b -> b) -> Event a -> b -> Event b
 
 -- | Map over an event, but carry an accumulator value with you. This can be
 -- | pretty useful if, for example, you want to attach IDs to events:
--- | `mapWithAccum (\x i -> Tuple (i + 1) (Tuple x i)) 0`.
-mapWithAccum :: forall a b c. (a -> b -> Tuple b c) -> Event a -> b -> Event c
-mapWithAccum f xs acc = mapMaybe snd
+-- | `mapAccum (\x i -> Tuple (i + 1) (Tuple x i)) 0`.
+mapAccum :: forall a b c. (a -> b -> Tuple b c) -> Event a -> b -> Event c
+mapAccum f xs acc = mapMaybe snd
   $ fold (\a (Tuple b _) -> pure <$> f a b) xs
   $ Tuple acc Nothing
 
