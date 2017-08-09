@@ -14,11 +14,13 @@ module FRP.Event
   ) where
 
 import Prelude
+
 import Control.Alternative (class Alt, class Alternative, class Plus)
 import Control.Apply (lift2)
 import Control.Monad.Eff (Eff)
 import Data.Maybe (Maybe(..), fromJust, isJust)
 import Data.Monoid (class Monoid, mempty)
+import Data.Tuple (Tuple(..), snd)
 import FRP (FRP)
 import Partial.Unsafe (unsafePartial)
 
@@ -71,6 +73,14 @@ foreign import applyImpl :: forall a b. Event (a -> b) -> Event a -> Event b
 
 -- | Fold over values received from some `Event`, creating a new `Event`.
 foreign import fold :: forall a b. (a -> b -> b) -> Event a -> b -> Event b
+
+-- | Map over an event, but carry an accumulator value with you. This can be
+-- | pretty useful if, for example, you want to attach IDs to events:
+-- | `mapWithAccum (\x i -> Tuple (i + 1) (Tuple x i)) 0`.
+mapWithAccum :: forall a b c. (a -> b -> Tuple b c) -> Event a -> b -> Event c
+mapWithAccum f xs acc = mapMaybe snd
+  $ fold (\a (Tuple b _) -> pure <$> f a b) xs
+  $ Tuple acc Nothing
 
 -- | Count the number of events received.
 count :: forall a. Event a -> Event Int
