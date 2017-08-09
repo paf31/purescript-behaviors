@@ -5,6 +5,7 @@ module FRP.Behavior
   , sample
   , sampleBy
   , sample_
+  , when
   , unfold
   , integral
   , integral'
@@ -15,10 +16,12 @@ module FRP.Behavior
   ) where
 
 import Prelude
+
 import Control.Alt (alt)
 import Control.Apply (lift2)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Unsafe (unsafePerformEff)
+import Data.Filterable (filtered)
 import Data.Function (applyFlipped)
 import Data.Maybe (Maybe(..))
 import Data.Monoid (class Monoid, mempty)
@@ -74,6 +77,11 @@ sampleBy f b e = sample (map f b) (map applyFlipped e)
 -- | Sample a `Behavior` on some `Event`, discarding the event's values.
 sample_ :: forall a b. Behavior a -> Event b -> Event a
 sample_ = sampleBy const
+
+-- | Filter out events from a stream that occur while a `Boolean` behavior is
+-- | `false`.
+when :: forall a. Behavior Boolean -> Event a -> Event a
+when b e = filtered (sampleBy (\p x -> if p then Just x else Nothing) b e)
 
 -- | Integrate with respect to some measure of time.
 -- |
