@@ -99,7 +99,7 @@ foreign import fold :: forall a b. (a -> b -> b) -> Event a -> b -> Event b
 -- | pretty useful if, for example, you want to attach IDs to events:
 -- | `mapAccum (\x i -> Tuple (i + 1) (Tuple x i)) 0`.
 mapAccum :: forall a b c. (a -> b -> Tuple b c) -> Event a -> b -> Event c
-mapAccum f xs acc = mapMaybe snd
+mapAccum f xs acc = filterMap snd
   $ fold (\a (Tuple b _) -> pure <$> f a b) xs
   $ Tuple acc Nothing
 
