@@ -30,7 +30,9 @@ ready to render our results.
 This library takes a slightly novel approach by constructing behaviors from events.
 
 ```purescript
-newtype Behavior a = Behavior (forall b. Event (a -> b) -> Event b)
+newtype ABehavior event a = ABehavior (forall b. event (a -> b) -> event b)\
+
+type Behavior = ABehavior Event
 ```
 
 Here, a `Behavior` is constructed directly from its sampling function.
