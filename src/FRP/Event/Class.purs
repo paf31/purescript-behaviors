@@ -3,6 +3,7 @@ module FRP.Event.Class
   , fold
   , folded
   , count
+  , mapAccum
   , mapMaybe
   , withLast
   , sampleOn
@@ -14,6 +15,7 @@ import Prelude
 import Control.Alternative (class Alternative)
 import Data.Maybe (Maybe(..))
 import Data.Monoid (class Monoid, mempty)
+import Data.Tuple (Tuple(..), snd)
 
 -- | Functions which an `Event` type should implement, so that
 -- | `Behavior`s can be defined in terms of any such event type.
@@ -39,6 +41,18 @@ withLast :: forall event a. IsEvent event => event a -> event { now :: a, last :
 withLast e = mapMaybe id (fold step e Nothing) where
   step a Nothing           = Just { now: a, last: Nothing }
   step a (Just { now: b }) = Just { now: a, last: Just b }
+
+-- | Map over an event with an accumulator.
+-- |
+-- | For example, to keep the index of the current event:
+-- |
+-- | ```purescript
+-- | mapAccum (\x i -> Tuple (i + 1) (Tuple x i)) 0`.
+-- | ```
+mapAccum :: forall event a b c. IsEvent event => (a -> b -> Tuple b c) -> event a -> b -> event c
+mapAccum f xs acc = mapMaybe snd
+  $ fold (\a (Tuple b _) -> pure <$> f a b) xs
+  $ Tuple acc Nothing
 
 -- | Create an `Event` which samples the latest values from the first event
 -- | at the times when the second event fires, ignoring the values produced by

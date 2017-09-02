@@ -2,6 +2,7 @@
 
 - [Example](test/Main.purs)
 - [API Documentation](generated-docs/FRP)
+- [Try `purescript-behaviors` in the browser](http://try.purescript.org/?backend=behaviors)
 
 ![Example](screenshots/1.gif)
 

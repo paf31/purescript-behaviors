@@ -1,5 +1,6 @@
 module FRP.Behavior
   ( Behavior
+  , ABehavior
   , behavior
   , step
   , sample
@@ -28,52 +29,60 @@ import FRP (FRP)
 import FRP.Event (class IsEvent, Event, create, fold, sampleOn, subscribe, withLast)
 import FRP.Event.Time (animationFrame)
 
--- | A `Behavior` acts like a continuous function of time.
+-- | The more general type of `ABehavior`, which is parameterized over some underlying
+-- | `event` type.
 -- |
--- | We can construct a sample a `Behavior` from some `Event`, combine `Behavior`s
--- | using `Applicative`, and sample a final `Behavior` on some other `Event`.
-newtype Behavior event a = Behavior (forall b. event (a -> b) -> event b)
+-- | Normally, you should use `ABehavior` instead, but this type
+-- | can also be used with other types of events, including the ones in the
+-- | `Semantic` module.
+newtype ABehavior event a = ABehavior (forall b. event (a -> b) -> event b)
 
-instance functorBehavior :: Functor event => Functor (Behavior event) where
-  map f (Behavior b) = Behavior \e -> b (map (_ <<< f) e)
+-- | A `ABehavior` acts like a continuous function of time.
+-- |
+-- | We can construct a sample a `ABehavior` from some `Event`, combine `ABehavior`s
+-- | using `Applicative`, and sample a final `ABehavior` on some other `Event`.
+type Behavior = ABehavior Event
 
-instance applyBehavior :: Functor event => Apply (Behavior event) where
-  apply (Behavior f) (Behavior a) = Behavior \e -> a (f (compose <$> e))
+instance functorABehavior :: Functor event => Functor (ABehavior event) where
+  map f (ABehavior b) = ABehavior \e -> b (map (_ <<< f) e)
 
-instance applicativeBehavior :: Functor event => Applicative (Behavior event) where
-  pure a = Behavior \e -> applyFlipped a <$> e
+instance applyABehavior :: Functor event => Apply (ABehavior event) where
+  apply (ABehavior f) (ABehavior a) = ABehavior \e -> a (f (compose <$> e))
 
-instance semigroupBehavior :: (Functor event, Semigroup a) => Semigroup (Behavior event a) where
+instance applicativeABehavior :: Functor event => Applicative (ABehavior event) where
+  pure a = ABehavior \e -> applyFlipped a <$> e
+
+instance semigroupABehavior :: (Functor event, Semigroup a) => Semigroup (ABehavior event a) where
   append = lift2 append
 
-instance monoidBehavior :: (Functor event, Monoid a) => Monoid (Behavior event a) where
+instance monoidABehavior :: (Functor event, Monoid a) => Monoid (ABehavior event a) where
   mempty = pure mempty
 
 -- | Construct a `Behavior` from its sampling function.
-behavior :: forall event a. (forall b. event (a -> b) -> event b) -> Behavior event a
-behavior = Behavior
+behavior :: forall event a. (forall b. event (a -> b) -> event b) -> ABehavior event a
+behavior = ABehavior
 
 -- | Create a `Behavior` which is updated when an `Event` fires, by providing
 -- | an initial value.
-step :: forall event a. IsEvent event => a -> event a -> Behavior event a
-step a e = Behavior (sampleOn (pure a `alt` e))
+step :: forall event a. IsEvent event => a -> event a -> ABehavior event a
+step a e = ABehavior (sampleOn (pure a `alt` e))
 
 -- | Create a `Behavior` which is updated when an `Event` fires, by providing
 -- | an initial value and a function to combine the current value with a new event
 -- | to create a new value.
-unfold :: forall event a b. IsEvent event => (a -> b -> b) -> event a -> b -> Behavior event b
+unfold :: forall event a b. IsEvent event => (a -> b -> b) -> event a -> b -> ABehavior event b
 unfold f e a = step a (fold f e a)
 
 -- | Sample a `Behavior` on some `Event`.
-sample :: forall event a b. Behavior event a -> event (a -> b) -> event b
-sample (Behavior b) e = b e
+sample :: forall event a b. ABehavior event a -> event (a -> b) -> event b
+sample (ABehavior b) e = b e
 
 -- | Sample a `Behavior` on some `Event` by providing a combining function.
-sampleBy :: forall event a b c. IsEvent event => (a -> b -> c) -> Behavior event a -> event b -> event c
+sampleBy :: forall event a b c. IsEvent event => (a -> b -> c) -> ABehavior event a -> event b -> event c
 sampleBy f b e = sample (map f b) (map applyFlipped e)
 
 -- | Sample a `Behavior` on some `Event`, discarding the event's values.
-sample_ :: forall event a b. IsEvent event => Behavior event a -> event b -> event a
+sample_ :: forall event a b. IsEvent event => ABehavior event a -> event b -> event a
 sample_ = sampleBy const
 
 -- | Integrate with respect to some measure of time.
@@ -92,11 +101,11 @@ integral
   => Semiring a
   => (((a -> t) -> t) -> a)
   -> a
-  -> Behavior event t
-  -> Behavior event a
-  -> Behavior event a
+  -> ABehavior event t
+  -> ABehavior event a
+  -> ABehavior event a
 integral g initial t b =
-    Behavior \e ->
+    ABehavior \e ->
       let x = sample b (e $> id)
           y = withLast (sampleBy Tuple t x)
           z = fold approx y initial
@@ -117,9 +126,9 @@ integral'
    . IsEvent event
   => Field t
   => t
-  -> Behavior event t
-  -> Behavior event t
-  -> Behavior event t
+  -> ABehavior event t
+  -> ABehavior event t
+  -> ABehavior event t
 integral' = integral (_ $ id)
 
 -- | Differentiate with respect to some measure of time.
@@ -137,11 +146,11 @@ derivative
   => Field t
   => Ring a
   => (((a -> t) -> t) -> a)
-  -> Behavior event t
-  -> Behavior event a
-  -> Behavior event a
+  -> ABehavior event t
+  -> ABehavior event a
+  -> ABehavior event a
 derivative g t b =
-    Behavior \e ->
+    ABehavior \e ->
       let x = sample b (e $> id)
           y = withLast (sampleBy Tuple t x)
           z = map approx y
@@ -158,13 +167,13 @@ derivative'
   :: forall event t
    . IsEvent event
   => Field t
-  => Behavior event t
-  -> Behavior event t
-  -> Behavior event t
+  => ABehavior event t
+  -> ABehavior event t
+  -> ABehavior event t
 derivative' = derivative (_ $ id)
 
 -- | Compute a fixed point
-fixB :: forall a. a -> (Behavior Event a -> Behavior Event a) -> Behavior Event a
+fixB :: forall a. a -> (ABehavior Event a -> ABehavior Event a) -> ABehavior Event a
 fixB a f = behavior \s -> unsafePerformEff do
   { event, push } <- create
   let b = f (step a event)
@@ -174,7 +183,7 @@ fixB a f = behavior \s -> unsafePerformEff do
 -- | Animate a `Behavior` by providing a rendering function.
 animate
   :: forall scene eff
-   . Behavior Event scene
+   . ABehavior Event scene
   -> (scene -> Eff (frp :: FRP | eff) Unit)
   -> Eff (frp :: FRP | eff) Unit
 animate scene render = subscribe (sample_ scene animationFrame) render

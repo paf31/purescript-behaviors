@@ -28,6 +28,20 @@ count :: forall event a. IsEvent event => event a -> event Int
 
 Count the number of events received.
 
+#### `mapAccum`
+
+``` purescript
+mapAccum :: forall event a b c. IsEvent event => (a -> b -> Tuple b c) -> event a -> b -> event c
+```
+
+Map over an event with an accumulator.
+
+For example, to keep the index of the current event:
+
+```purescript
+mapAccum (\x i -> Tuple (i + 1) (Tuple x i)) 0`.
+```
+
 #### `withLast`
 
 ``` purescript

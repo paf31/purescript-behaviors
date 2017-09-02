@@ -112,7 +112,7 @@ import Data.Monoid (class Monoid, mempty)
 import Data.Newtype (class Newtype)
 import Data.Traversable (mapAccumL, traverse)
 import Data.Tuple (Tuple(..), fst)
-import FRP.Behavior (Behavior, sample)
+import FRP.Behavior (ABehavior, sample)
 import FRP.Event (class IsEvent)
 import Partial.Unsafe (unsafePartial)
 
@@ -143,7 +143,7 @@ latestAt
   -> Maybe (Tuple time a)
 latestAt t xs = List.last (List.takeWhile ((_ <= t) <<< fst) xs)
 
-meaning :: forall time a. Bounded time => Behavior (Semantic time) a -> time -> a
+meaning :: forall time a. Bounded time => ABehavior (Semantic time) a -> time -> a
 meaning b t = unsafePartial valueOf (sample b (once t id)) where
   valueOf :: Partial => Semantic time a -> a
   valueOf (Semantic (Tuple _ a : Nil)) = a

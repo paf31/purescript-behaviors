@@ -3,27 +3,40 @@
 #### `Behavior`
 
 ``` purescript
-newtype Behavior event a
+type Behavior = ABehavior Event
 ```
 
-A `Behavior` acts like a continuous function of time.
+A `ABehavior` acts like a continuous function of time.
 
-We can construct a sample a `Behavior` from some `Event`, combine `Behavior`s
-using `Applicative`, and sample a final `Behavior` on some other `Event`.
+We can construct a sample a `ABehavior` from some `Event`, combine `ABehavior`s
+using `Applicative`, and sample a final `ABehavior` on some other `Event`.
+
+#### `ABehavior`
+
+``` purescript
+newtype ABehavior event a
+```
+
+The more general type of `ABehavior`, which is parameterized over some underlying
+`event` type.
+
+Normally, you should use `ABehavior` instead, but this type
+can also be used with other types of events, including the ones in the
+`Semantic` module.
 
 ##### Instances
 ``` purescript
-(Functor event) => Functor (Behavior event)
-(Functor event) => Apply (Behavior event)
-(Functor event) => Applicative (Behavior event)
-(Functor event, Semigroup a) => Semigroup (Behavior event a)
-(Functor event, Monoid a) => Monoid (Behavior event a)
+(Functor event) => Functor (ABehavior event)
+(Functor event) => Apply (ABehavior event)
+(Functor event) => Applicative (ABehavior event)
+(Functor event, Semigroup a) => Semigroup (ABehavior event a)
+(Functor event, Monoid a) => Monoid (ABehavior event a)
 ```
 
 #### `behavior`
 
 ``` purescript
-behavior :: forall event a. (forall b. event (a -> b) -> event b) -> Behavior event a
+behavior :: forall event a. (forall b. event (a -> b) -> event b) -> ABehavior event a
 ```
 
 Construct a `Behavior` from its sampling function.
@@ -31,7 +44,7 @@ Construct a `Behavior` from its sampling function.
 #### `step`
 
 ``` purescript
-step :: forall event a. IsEvent event => a -> event a -> Behavior event a
+step :: forall event a. IsEvent event => a -> event a -> ABehavior event a
 ```
 
 Create a `Behavior` which is updated when an `Event` fires, by providing
@@ -40,7 +53,7 @@ an initial value.
 #### `sample`
 
 ``` purescript
-sample :: forall event a b. Behavior event a -> event (a -> b) -> event b
+sample :: forall event a b. ABehavior event a -> event (a -> b) -> event b
 ```
 
 Sample a `Behavior` on some `Event`.
@@ -48,7 +61,7 @@ Sample a `Behavior` on some `Event`.
 #### `sampleBy`
 
 ``` purescript
-sampleBy :: forall event a b c. IsEvent event => (a -> b -> c) -> Behavior event a -> event b -> event c
+sampleBy :: forall event a b c. IsEvent event => (a -> b -> c) -> ABehavior event a -> event b -> event c
 ```
 
 Sample a `Behavior` on some `Event` by providing a combining function.
@@ -56,7 +69,7 @@ Sample a `Behavior` on some `Event` by providing a combining function.
 #### `sample_`
 
 ``` purescript
-sample_ :: forall event a b. IsEvent event => Behavior event a -> event b -> event a
+sample_ :: forall event a b. IsEvent event => ABehavior event a -> event b -> event a
 ```
 
 Sample a `Behavior` on some `Event`, discarding the event's values.
@@ -64,7 +77,7 @@ Sample a `Behavior` on some `Event`, discarding the event's values.
 #### `unfold`
 
 ``` purescript
-unfold :: forall event a b. IsEvent event => (a -> b -> b) -> event a -> b -> Behavior event b
+unfold :: forall event a b. IsEvent event => (a -> b -> b) -> event a -> b -> ABehavior event b
 ```
 
 Create a `Behavior` which is updated when an `Event` fires, by providing
@@ -74,7 +87,7 @@ to create a new value.
 #### `integral`
 
 ``` purescript
-integral :: forall event a t. IsEvent event => Field t => Semiring a => (((a -> t) -> t) -> a) -> a -> Behavior event t -> Behavior event a -> Behavior event a
+integral :: forall event a t. IsEvent event => Field t => Semiring a => (((a -> t) -> t) -> a) -> a -> ABehavior event t -> ABehavior event a -> ABehavior event a
 ```
 
 Integrate with respect to some measure of time.
@@ -90,7 +103,7 @@ the `integral'` function instead.
 #### `integral'`
 
 ``` purescript
-integral' :: forall event t. IsEvent event => Field t => t -> Behavior event t -> Behavior event t -> Behavior event t
+integral' :: forall event t. IsEvent event => Field t => t -> ABehavior event t -> ABehavior event t -> ABehavior event t
 ```
 
 Integrate with respect to some measure of time.
@@ -101,7 +114,7 @@ integrated takes values in the same field used to represent time.
 #### `derivative`
 
 ``` purescript
-derivative :: forall event a t. IsEvent event => Field t => Ring a => (((a -> t) -> t) -> a) -> Behavior event t -> Behavior event a -> Behavior event a
+derivative :: forall event a t. IsEvent event => Field t => Ring a => (((a -> t) -> t) -> a) -> ABehavior event t -> ABehavior event a -> ABehavior event a
 ```
 
 Differentiate with respect to some measure of time.
@@ -117,7 +130,7 @@ the `derivative'` function.
 #### `derivative'`
 
 ``` purescript
-derivative' :: forall event t. IsEvent event => Field t => Behavior event t -> Behavior event t -> Behavior event t
+derivative' :: forall event t. IsEvent event => Field t => ABehavior event t -> ABehavior event t -> ABehavior event t
 ```
 
 Differentiate with respect to some measure of time.
@@ -128,7 +141,7 @@ differentiated takes values in the same field used to represent time.
 #### `fixB`
 
 ``` purescript
-fixB :: forall a. a -> (Behavior Event a -> Behavior Event a) -> Behavior Event a
+fixB :: forall a. a -> (ABehavior Event a -> ABehavior Event a) -> ABehavior Event a
 ```
 
 Compute a fixed point
@@ -136,7 +149,7 @@ Compute a fixed point
 #### `animate`
 
 ``` purescript
-animate :: forall scene eff. Behavior Event scene -> (scene -> Eff (frp :: FRP | eff) Unit) -> Eff (frp :: FRP | eff) Unit
+animate :: forall scene eff. ABehavior Event scene -> (scene -> Eff (frp :: FRP | eff) Unit) -> Eff (frp :: FRP | eff) Unit
 ```
 
 Animate a `Behavior` by providing a rendering function.

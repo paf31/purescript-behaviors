@@ -111,6 +111,20 @@ Create an `Event` which samples the latest values from the first event
 at the times when the second event fires, ignoring the values produced by
 the second event.
 
+#### `mapAccum`
+
+``` purescript
+mapAccum :: forall event a b c. IsEvent event => (a -> b -> Tuple b c) -> event a -> b -> event c
+```
+
+Map over an event with an accumulator.
+
+For example, to keep the index of the current event:
+
+```purescript
+mapAccum (\x i -> Tuple (i + 1) (Tuple x i)) 0`.
+```
+
 #### `folded`
 
 ``` purescript
