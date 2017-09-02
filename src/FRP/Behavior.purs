@@ -29,18 +29,18 @@ import FRP (FRP)
 import FRP.Event (class IsEvent, Event, create, fold, sampleOn, subscribe, withLast)
 import FRP.Event.Time (animationFrame)
 
--- | The more general type of `ABehavior`, which is parameterized over some underlying
--- | `event` type.
+-- | `ABehavior` is the more general type of `Behavior`, which is parameterized
+-- | over some underlying `event` type.
 -- |
--- | Normally, you should use `ABehavior` instead, but this type
+-- | Normally, you should use `Behavior` instead, but this type
 -- | can also be used with other types of events, including the ones in the
 -- | `Semantic` module.
 newtype ABehavior event a = ABehavior (forall b. event (a -> b) -> event b)
 
--- | A `ABehavior` acts like a continuous function of time.
+-- | A `Behavior` acts like a continuous function of time.
 -- |
--- | We can construct a sample a `ABehavior` from some `Event`, combine `ABehavior`s
--- | using `Applicative`, and sample a final `ABehavior` on some other `Event`.
+-- | We can construct a sample a `Behavior` from some `Event`, combine `Behavior`s
+-- | using `Applicative`, and sample a final `Behavior` on some other `Event`.
 type Behavior = ABehavior Event
 
 instance functorABehavior :: Functor event => Functor (ABehavior event) where
