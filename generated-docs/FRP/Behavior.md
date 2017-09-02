@@ -150,7 +150,13 @@ Solve a first order differential equation of the form
 da/dt = f a
 ```
 
-by integrating once.
+by integrating once (specifying the initial conditions).
+
+For example, the exponential function with growth rate `⍺`:
+
+```purescript
+exp = solve' 1.0 Time.seconds (⍺ * _)
+```
 
 #### `solve'`
 
@@ -161,7 +167,7 @@ solve' :: forall a. Field a => a -> Behavior a -> (Behavior a -> Behavior a) -> 
 Solve a first order differential equation.
 
 This function is a simpler version of `solve` where the function being
-differentiated takes values in the same field used to represent time.
+integrated takes values in the same field used to represent time.
 
 #### `solve2`
 
@@ -175,7 +181,13 @@ Solve a second order differential equation of the form
 d^2a/dt^2 = f a (da/dt)
 ```
 
-by integrating twice.
+by integrating twice (specifying the initial conditions).
+
+For example, an (damped) oscillator:
+
+```purescript
+oscillate = solve2' 1.0 0.0 Time.seconds (\x dx -> -⍺ * x - δ * dx)
+```
 
 #### `solve2'`
 
@@ -186,7 +198,7 @@ solve2' :: forall a. Field a => a -> a -> Behavior a -> (Behavior a -> Behavior 
 Solve a second order differential equation.
 
 This function is a simpler version of `solve2` where the function being
-differentiated takes values in the same field used to represent time.
+integrated takes values in the same field used to represent time.
 
 #### `fixB`
 

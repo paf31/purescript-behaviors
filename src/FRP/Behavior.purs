@@ -190,7 +190,13 @@ fixB a f = behavior \s -> unsafePerformEff do
 -- | da/dt = f a
 -- | ```
 -- |
--- | by integrating once.
+-- | by integrating once (specifying the initial conditions).
+-- |
+-- | For example, the exponential function with growth rate `⍺`:
+-- |
+-- | ```purescript
+-- | exp = solve' 1.0 Time.seconds (⍺ * _)
+-- | ```
 solve
   :: forall t a
    . Field t
@@ -205,7 +211,7 @@ solve g a0 t f = fixB a0 \b -> integral g a0 t (f b)
 -- | Solve a first order differential equation.
 -- |
 -- | This function is a simpler version of `solve` where the function being
--- | differentiated takes values in the same field used to represent time.
+-- | integrated takes values in the same field used to represent time.
 solve'
   :: forall a
    . Field a
@@ -221,7 +227,13 @@ solve' = solve (_ $ id)
 -- | d^2a/dt^2 = f a (da/dt)
 -- | ```
 -- |
--- | by integrating twice.
+-- | by integrating twice (specifying the initial conditions).
+-- |
+-- | For example, an (damped) oscillator:
+-- |
+-- | ```purescript
+-- | oscillate = solve2' 1.0 0.0 Time.seconds (\x dx -> -⍺ * x - δ * dx)
+-- | ```
 solve2
   :: forall t a
    . Field t
@@ -241,7 +253,7 @@ solve2 g a0 da0 t f =
 -- | Solve a second order differential equation.
 -- |
 -- | This function is a simpler version of `solve2` where the function being
--- | differentiated takes values in the same field used to represent time.
+-- | integrated takes values in the same field used to represent time.
 solve2'
   :: forall a
    . Field a
