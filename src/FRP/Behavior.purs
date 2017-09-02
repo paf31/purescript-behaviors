@@ -7,6 +7,7 @@ module FRP.Behavior
   , sampleBy
   , sample_
   , unfold
+  , switcher
   , integral
   , integral'
   , derivative
@@ -30,7 +31,7 @@ import Data.Maybe (Maybe(..))
 import Data.Monoid (class Monoid, mempty)
 import Data.Tuple (Tuple(Tuple))
 import FRP (FRP)
-import FRP.Event (class IsEvent, Event, create, fold, sampleOn, subscribe, withLast)
+import FRP.Event (class IsEvent, Event, create, fold, keepLatest, sampleOn, subscribe, withLast)
 import FRP.Event.Time (animationFrame)
 
 -- | `ABehavior` is the more general type of `Behavior`, which is parameterized
@@ -88,6 +89,11 @@ sampleBy f b e = sample (map f b) (map applyFlipped e)
 -- | Sample a `Behavior` on some `Event`, discarding the event's values.
 sample_ :: forall event a b. IsEvent event => ABehavior event a -> event b -> event a
 sample_ = sampleBy const
+
+-- | Switch `Behavior`s based on an `Event`.
+switcher :: forall a. Behavior a -> Event (Behavior a) -> Behavior a
+switcher b0 e = behavior \s ->
+  keepLatest (pure (sample b0 s) `alt` map (\b -> sample b s) e)
 
 -- | Integrate with respect to some measure of time.
 -- |
@@ -181,7 +187,7 @@ fixB :: forall a. a -> (ABehavior Event a -> ABehavior Event a) -> ABehavior Eve
 fixB a f = behavior \s -> unsafePerformEff do
   { event, push } <- create
   let b = f (step a event)
-  subscribe (sample_ b s) push
+  _ <- subscribe (sample_ b s) push
   pure (sampleOn event s)
 
 -- | Solve a first order differential equation of the form
@@ -269,5 +275,5 @@ animate
   :: forall scene eff
    . ABehavior Event scene
   -> (scene -> Eff (frp :: FRP | eff) Unit)
-  -> Eff (frp :: FRP | eff) Unit
+  -> Eff (frp :: FRP | eff) (Eff (frp :: FRP | eff) Unit)
 animate scene render = subscribe (sample_ scene animationFrame) render

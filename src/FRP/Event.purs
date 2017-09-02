@@ -2,6 +2,7 @@ module FRP.Event
   ( Event
   , never
   , filter
+  , keepLatest
   , subscribe
   , create
   , module Class
@@ -82,12 +83,18 @@ foreign import filter :: forall a. (a -> Boolean) -> Event a -> Event a
 -- | at the times when the second event fires.
 foreign import sampleOn :: forall a b. Event a -> Event (a -> b) -> Event b
 
+-- | Flatten a nested `Event`, reporting values only from the most recent
+-- | inner `Event`.
+foreign import keepLatest :: forall a. Event (Event a) -> Event a
+
 -- | Subscribe to an `Event` by providing a callback.
+-- |
+-- | `subscribe` returns a canceller function.
 foreign import subscribe
   :: forall eff a r
    . Event a
   -> (a -> Eff (frp :: FRP | eff) r)
-  -> Eff (frp :: FRP | eff) Unit
+  -> Eff (frp :: FRP | eff) (Eff (frp :: FRP | eff) Unit)
 
 -- | Create an event and a function which supplies a value to that event.
 foreign import create

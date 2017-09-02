@@ -3,13 +3,14 @@
 exports.pureImpl = function (a) {
   return function(sub) {
     sub(a);
+    return function() {};
   }
 };
 
 exports.mapImpl = function (f) {
   return function(e) {
     return function (sub) {
-      e(function(a) {
+      return e(function(a) {
         sub(f(a));
       });
     }
@@ -17,6 +18,7 @@ exports.mapImpl = function (f) {
 };
 
 exports.never = function (sub) {
+  return function() {};
 };
 
 exports.applyImpl = function (e1) {
@@ -25,7 +27,7 @@ exports.applyImpl = function (e1) {
       var a_latest, b_latest;
       var a_fired = false, b_fired = false;
 
-      e1(function(a) {
+      var cancel1 = e1(function(a) {
         a_latest = a;
         a_fired = true;
 
@@ -34,7 +36,7 @@ exports.applyImpl = function (e1) {
         }
       });
 
-      e2(function(b) {
+      var cancel2 = e2(function(b) {
         b_latest = b;
         b_fired = true;
 
@@ -42,6 +44,11 @@ exports.applyImpl = function (e1) {
           sub(a_latest(b_latest));
         }
       });
+
+      return function() {
+        cancel1();
+        cancel2();
+      };
     };
   };
 };
@@ -49,8 +56,13 @@ exports.applyImpl = function (e1) {
 exports.mergeImpl = function (e1) {
   return function(e2) {
     return function(sub) {
-      e1(sub);
-      e2(sub);
+      var cancel1 = e1(sub);
+      var cancel2 = e2(sub);
+
+      return function() {
+        cancel1();
+        cancel2();
+      };
     }
   };
 };
@@ -61,7 +73,7 @@ exports.fold = function (f) {
       return function(sub) {
         var result = b;
 
-        e(function(a) {
+        return e(function(a) {
           sub(result = f(a)(result));
         });
       };
@@ -72,7 +84,7 @@ exports.fold = function (f) {
 exports.filter = function (p) {
   return function(e) {
     return function(sub) {
-      e(function(a) {
+      return e(function(a) {
         if (p(a)) {
           sub(a);
         }
@@ -87,16 +99,21 @@ exports.sampleOn = function (e1) {
       var latest;
       var fired = false;
 
-      e1(function(a) {
+      var cancel1 = e1(function(a) {
         latest = a;
         fired = true;
       });
 
-      e2(function(f) {
+      var cancel2 = e2(function(f) {
         if (fired) {
           sub(f(latest));
         }
       });
+
+      return function() {
+        cancel1();
+        cancel2();
+      };
     };
   };
 };
@@ -104,10 +121,26 @@ exports.sampleOn = function (e1) {
 exports.subscribe = function (e) {
   return function(f) {
     return function() {
-      e(function(a) {
+      return e(function(a) {
         f(a)();
       });
     };
+  };
+};
+
+exports.keepLatest = function (e) {
+  return function(sub) {
+    var cancelInner;
+
+    var cancelOuter = e(function(inner) {
+      cancelInner && cancelInner();
+      cancelInner = inner(sub);
+    });
+
+    return function() {
+      cancelInner && cancelInner();
+      cancelOuter();
+    }
   };
 };
 
@@ -116,6 +149,12 @@ exports.create = function () {
   return {
     event: function(sub) {
       subs.push(sub);
+      return function() {
+        var index = subs.indexOf(sub);
+        if (index >= 0) {
+          subs.splice(index, 1);
+        }
+      };
     },
     push: function(a) {
       return function() {

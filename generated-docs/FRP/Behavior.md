@@ -84,6 +84,14 @@ Create a `Behavior` which is updated when an `Event` fires, by providing
 an initial value and a function to combine the current value with a new event
 to create a new value.
 
+#### `switcher`
+
+``` purescript
+switcher :: forall a. Behavior a -> Event (Behavior a) -> Behavior a
+```
+
+Switch `Behavior`s based on an `Event`.
+
 #### `integral`
 
 ``` purescript
@@ -211,7 +219,7 @@ Compute a fixed point
 #### `animate`
 
 ``` purescript
-animate :: forall scene eff. ABehavior Event scene -> (scene -> Eff (frp :: FRP | eff) Unit) -> Eff (frp :: FRP | eff) Unit
+animate :: forall scene eff. ABehavior Event scene -> (scene -> Eff (frp :: FRP | eff) Unit) -> Eff (frp :: FRP | eff) (Eff (frp :: FRP | eff) Unit)
 ```
 
 Animate a `Behavior` by providing a rendering function.

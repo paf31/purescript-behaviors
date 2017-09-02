@@ -2,25 +2,34 @@
 
 exports.interval = function (n) {
   return function(sub) {
-    setInterval(function() {
+    var interval = setInterval(function() {
       sub(new Date().getTime());
     }, n);
+    return function() {
+      clearInterval(interval);
+    };
   };
 };
 
 exports.animationFrame = function(sub) {
+  var cancelled = false;
   var loop = function() {
     window.requestAnimationFrame(function() {
       sub();
-      loop();
+      if (!cancelled) {
+        loop();
+      }
     });
   };
   loop();
+  return function() {
+    cancelled = true;
+  }
 };
 
 exports.withTime = function (e) {
   return function(sub) {
-    e(function(a) {
+    return e(function(a) {
       var time = new Date().getTime();
       sub({ time: time, value: a });
     });

@@ -62,13 +62,24 @@ filter :: forall a. (a -> Boolean) -> Event a -> Event a
 
 Create an `Event` which only fires when a predicate holds.
 
+#### `keepLatest`
+
+``` purescript
+keepLatest :: forall a. Event (Event a) -> Event a
+```
+
+Flatten a nested `Event`, reporting values only from the most recent
+inner `Event`.
+
 #### `subscribe`
 
 ``` purescript
-subscribe :: forall eff a r. Event a -> (a -> Eff (frp :: FRP | eff) r) -> Eff (frp :: FRP | eff) Unit
+subscribe :: forall eff a r. Event a -> (a -> Eff (frp :: FRP | eff) r) -> Eff (frp :: FRP | eff) (Eff (frp :: FRP | eff) Unit)
 ```
 
 Subscribe to an `Event` by providing a callback.
+
+`subscribe` returns a canceller function.
 
 #### `create`
 

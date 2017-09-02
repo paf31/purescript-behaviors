@@ -1,19 +1,31 @@
 "use strict";
 
 exports.move = function(sub) {
-  addEventListener("mousemove", function(e) {
+  var cb = function(e) {
     sub({ x: e.clientX, y: e.clientY });
-  });
+  };
+  addEventListener("mousemove", cb);
+  return function() {
+    removeEventListener("mousemove", cb);
+  };
 };
 
 exports.down = function(sub) {
-  addEventListener("mousedown", function(e) {
+  var cb = function(e) {
     sub(e.button);
-  });
+  };
+  addEventListener("mousedown", cb);
+  return function() {
+    removeEventListener("mousedown", cb);
+  };
 };
 
 exports.up = function(sub) {
-  addEventListener("mouseup", function(e) {
+  var cb = function(e) {
     sub(e.button);
-  });
+  };
+  addEventListener("mouseup", cb);
+  return function() {
+    removeEventListener("mouseup", cb);
+  };
 };

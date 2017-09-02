@@ -1,13 +1,21 @@
 "use strict";
 
 exports.down = function(sub) {
-  addEventListener("keydown", function(e) {
+  var cb = function(e) {
     sub(e.keyCode);
-  });
+  };
+  addEventListener("keydown", cb);
+  return function() {
+    removeEventListener("keydown", cb);
+  }
 };
 
 exports.up = function(sub) {
-  addEventListener("keyup", function(e) {
+  var cb = function(e) {
     sub(e.keyCode);
-  });
+  };
+  addEventListener("keyup", cb);
+  return function() {
+    removeEventListener("keyup", cb);
+  }
 };
