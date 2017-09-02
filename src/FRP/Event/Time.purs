@@ -14,4 +14,4 @@ foreign import interval :: Int -> Event Int
 foreign import animationFrame :: Event Unit
 
 -- | Create an event which reports the current time in milliseconds since the epoch.
-foreign import withTime :: forall a. Event a -> Event { value :: a, time :: Int }
+foreign import withTime :: forall a. Event a -> Event { value :: a, time :: Number }

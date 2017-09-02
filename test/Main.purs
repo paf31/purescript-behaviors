@@ -40,7 +40,7 @@ scene { w, h } = pure background <> map renderCircles circles where
   renderCircles = foldMap renderCircle
 
   seconds :: Behavior Number
-  seconds = map ((_ / 1000.0) <<< toNumber) Time.millisSinceEpoch
+  seconds = map (_ / 1000.0) Time.millisSinceEpoch
 
   -- `swell` is an interactive function of time defined by a differential equation:
   --
