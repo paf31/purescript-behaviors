@@ -18,14 +18,15 @@ import Data.Monoid (class Monoid, mempty)
 import Data.Tuple (Tuple(..), snd)
 
 -- | Functions which an `Event` type should implement, so that
--- | `Behavior`s can be defined in terms of any such event type.
+-- | `Behavior`s can be defined in terms of any such event type:
+-- |
+-- | - `fold`: combines incoming values using the specified function,
+-- | starting with the specific initial value.
+-- | - `mapMaybe`: discards incoming values which do not satisfy a predicate.
+-- | - `sampleOn`: samples an event at the times when a second event fires.
 class Alternative event <= IsEvent event where
-  -- | Combine incoming values using the specified function,
-  -- | starting with the specific initial value.
   fold :: forall a b. (a -> b -> b) -> event a -> b -> event b
-  -- | Discard incoming values which do not satisfy the predicate.
   mapMaybe :: forall a b. (a -> Maybe b) -> event a -> event b
-  -- | Sample an event at the times when a second event fires.
   sampleOn :: forall a b. event a -> event (a -> b) -> event b
 
 -- | Count the number of events received.

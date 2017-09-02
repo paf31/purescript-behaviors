@@ -14,7 +14,6 @@ import Control.Apply (lift2)
 import Control.Monad.Eff (Eff)
 import Data.Maybe (Maybe, fromJust, isJust)
 import Data.Monoid (class Monoid, mempty)
-import Data.Tuple (Tuple(..), snd)
 import FRP (FRP)
 import FRP.Event.Class as Class
 import Partial.Unsafe (unsafePartial)

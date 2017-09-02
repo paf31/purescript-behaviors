@@ -10,7 +10,12 @@ class (Alternative event) <= IsEvent event  where
 ```
 
 Functions which an `Event` type should implement, so that
-`Behavior`s can be defined in terms of any such event type.
+`Behavior`s can be defined in terms of any such event type:
+
+- `fold`: combines incoming values using the specified function,
+starting with the specific initial value.
+- `mapMaybe`: discards incoming values which do not satisfy a predicate.
+- `sampleOn`: samples an event at the times when a second event fires.
 
 #### `folded`
 
