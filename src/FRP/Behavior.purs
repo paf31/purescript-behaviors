@@ -11,6 +11,10 @@ module FRP.Behavior
   , integral'
   , derivative
   , derivative'
+  , solve
+  , solve'
+  , solve2
+  , solve2'
   , fixB
   , animate
   ) where
@@ -179,6 +183,74 @@ fixB a f = behavior \s -> unsafePerformEff do
   let b = f (step a event)
   subscribe (sample_ b s) push
   pure (sampleOn event s)
+
+-- | Solve a first order differential equation of the form
+-- |
+-- | ```
+-- | da/dt = f a
+-- | ```
+-- |
+-- | by integrating once.
+solve
+  :: forall t a
+   . Field t
+  => Semiring a
+  => (((a -> t) -> t) -> a)
+  -> a
+  -> Behavior t
+  -> (Behavior a -> Behavior a)
+  -> Behavior a
+solve g a0 t f = fixB a0 \b -> integral g a0 t (f b)
+
+-- | Solve a first order differential equation.
+-- |
+-- | This function is a simpler version of `solve` where the function being
+-- | differentiated takes values in the same field used to represent time.
+solve'
+  :: forall a
+   . Field a
+  => a
+  -> Behavior a
+  -> (Behavior a -> Behavior a)
+  -> Behavior a
+solve' = solve (_ $ id)
+
+-- | Solve a second order differential equation of the form
+-- |
+-- | ```
+-- | d^2a/dt^2 = f a (da/dt)
+-- | ```
+-- |
+-- | by integrating twice.
+solve2
+  :: forall t a
+   . Field t
+  => Semiring a
+  => (((a -> t) -> t) -> a)
+  -> a
+  -> a
+  -> Behavior t
+  -> (Behavior a -> Behavior a -> Behavior a)
+  -> Behavior a
+solve2 g a0 da0 t f =
+  fixB a0 \b ->
+    integral g a0 t
+      (fixB da0 \db ->
+        integral g a0 t (f b db))
+
+-- | Solve a second order differential equation.
+-- |
+-- | This function is a simpler version of `solve2` where the function being
+-- | differentiated takes values in the same field used to represent time.
+solve2'
+  :: forall a
+   . Field a
+  => a
+  -> a
+  -> Behavior a
+  -> (Behavior a -> Behavior a -> Behavior a)
+  -> Behavior a
+solve2' = solve2 (_ $ id)
 
 -- | Animate a `Behavior` by providing a rendering function.
 animate

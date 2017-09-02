@@ -138,6 +138,56 @@ Differentiate with respect to some measure of time.
 This function is a simpler version of `derivative` where the function being
 differentiated takes values in the same field used to represent time.
 
+#### `solve`
+
+``` purescript
+solve :: forall t a. Field t => Semiring a => (((a -> t) -> t) -> a) -> a -> Behavior t -> (Behavior a -> Behavior a) -> Behavior a
+```
+
+Solve a first order differential equation of the form
+
+```
+da/dt = f a
+```
+
+by integrating once.
+
+#### `solve'`
+
+``` purescript
+solve' :: forall a. Field a => a -> Behavior a -> (Behavior a -> Behavior a) -> Behavior a
+```
+
+Solve a first order differential equation.
+
+This function is a simpler version of `solve` where the function being
+differentiated takes values in the same field used to represent time.
+
+#### `solve2`
+
+``` purescript
+solve2 :: forall t a. Field t => Semiring a => (((a -> t) -> t) -> a) -> a -> a -> Behavior t -> (Behavior a -> Behavior a -> Behavior a) -> Behavior a
+```
+
+Solve a second order differential equation of the form
+
+```
+d^2a/dt^2 = f a (da/dt)
+```
+
+by integrating twice.
+
+#### `solve2'`
+
+``` purescript
+solve2' :: forall a. Field a => a -> a -> Behavior a -> (Behavior a -> Behavior a -> Behavior a) -> Behavior a
+```
+
+Solve a second order differential equation.
+
+This function is a simpler version of `solve2` where the function being
+differentiated takes values in the same field used to represent time.
+
 #### `fixB`
 
 ``` purescript

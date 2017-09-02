@@ -11,7 +11,7 @@ import Data.Int (toNumber)
 import Data.Maybe (fromJust, maybe)
 import Data.Set (isEmpty)
 import FRP (FRP)
-import FRP.Behavior (Behavior, animate, derivative', fixB, integral')
+import FRP.Behavior (Behavior, animate, solve2')
 import FRP.Behavior.Mouse (buttons)
 import FRP.Behavior.Mouse as Mouse
 import FRP.Behavior.Time as Time
@@ -40,9 +40,6 @@ scene { w, h } = pure background <> map renderCircles circles where
   renderCircles :: Array Circle -> Drawing
   renderCircles = foldMap renderCircle
 
-  seconds :: Behavior Number
-  seconds = map (_ / 1000.0) Time.millisSinceEpoch
-
   -- `swell` is an interactive function of time defined by a differential equation:
   --
   -- d^2s/dt^2
@@ -52,12 +49,12 @@ scene { w, h } = pure background <> map renderCircles circles where
   -- So the function exhibits either decay or growth depending on if
   -- the mouse is pressed or not.
   --
-  -- We can solve the differential equation using an integral and a fixed point.
+  -- We can solve the differential equation by integration using `solve2'`.
   swell :: Behavior Number
-  swell = fixB 2.0 \b ->
+  swell = solve2' 2.0 0.0 Time.seconds \b db ->
     let f bs s ds | isEmpty bs = -8.0 * (s - 1.0) - ds * 2.0
-                  | otherwise = 2.0 * (4.0 - s) in
-    integral' 2.0 seconds (integral' 0.0 seconds (f <$> buttons <*> b <*> derivative' seconds b))
+                  | otherwise = 2.0 * (4.0 - s)
+    in f <$> buttons <*> b <*> db
 
   circles :: Behavior (Array Circle)
   circles = toCircles <$> Mouse.position <*> swell where
