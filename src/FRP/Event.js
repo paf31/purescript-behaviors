@@ -69,7 +69,7 @@ exports.fold = function (f) {
   };
 };
 
-exports.filter = function (p) {
+exports.filterImpl = function (p) {
   return function(e) {
     return function(sub) {
       e(function(a) {

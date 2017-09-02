@@ -2,8 +2,6 @@ module FRP.Event
   ( Event
   , fold
   , never
-  , filter
-  , mapMaybe
   , mapAccum
   , count
   , folded
@@ -12,6 +10,8 @@ module FRP.Event
   , sampleOn_
   , subscribe
   , create
+  , when
+  , module Data.Filterable
   ) where
 
 import Prelude
@@ -19,6 +19,9 @@ import Prelude
 import Control.Alternative (class Alt, class Alternative, class Plus)
 import Control.Apply (lift2)
 import Control.Monad.Eff (Eff)
+import Control.MonadZero (guard)
+import Data.Either (fromLeft, fromRight, isLeft, isRight)
+import Data.Filterable (class Filterable, eitherBool, filterMap, filtered)
 import Data.Maybe (Maybe(..), fromJust, isJust)
 import Data.Monoid (class Monoid, mempty)
 import Data.Tuple (Tuple(..), snd)
@@ -48,6 +51,23 @@ foreign import never :: forall a. Event a
 
 instance functorEvent :: Functor Event where
   map = mapImpl
+
+instance filterableEvent :: Filterable Event where
+  filter = filterImpl
+
+  filterMap f = unsafePartial $ map fromJust
+                            <<< filterImpl isJust
+                            <<< map f
+
+  partition p xs = let xs' = map (eitherBool p) xs in
+    { no:  unsafePartial $ map fromLeft  $ filterImpl isLeft  $ xs'
+    , yes: unsafePartial $ map fromRight $ filterImpl isRight $ xs'
+    }
+
+  partitionMap f xs = let xs' = f <$> xs in
+    { left:  unsafePartial $ map fromLeft  $ filterImpl isLeft  $ xs'
+    , right: unsafePartial $ map fromRight $ filterImpl isRight $ xs'
+    }
 
 instance applyEvent :: Apply Event where
   apply = applyImpl
@@ -79,7 +99,7 @@ foreign import fold :: forall a b. (a -> b -> b) -> Event a -> b -> Event b
 -- | pretty useful if, for example, you want to attach IDs to events:
 -- | `mapAccum (\x i -> Tuple (i + 1) (Tuple x i)) 0`.
 mapAccum :: forall a b c. (a -> b -> Tuple b c) -> Event a -> b -> Event c
-mapAccum f xs acc = mapMaybe snd
+mapAccum f xs acc = filterMap snd
   $ fold (\a (Tuple b _) -> pure <$> f a b) xs
   $ Tuple acc Nothing
 
@@ -93,16 +113,12 @@ folded s = fold append s mempty
 
 -- | Compute differences between successive event values.
 withLast :: forall a. Event a -> Event { now :: a, last :: Maybe a }
-withLast e = mapMaybe id (fold step e Nothing) where
+withLast e = filtered (fold step e Nothing) where
   step a Nothing           = Just { now: a, last: Nothing }
   step a (Just { now: b }) = Just { now: a, last: Just b }
 
 -- | Create an `Event` which only fires when a predicate holds.
-foreign import filter :: forall a. (a -> Boolean) -> Event a -> Event a
-
--- | Filter out any `Nothing` events.
-mapMaybe :: forall a b. (a -> Maybe b) -> Event a -> Event b
-mapMaybe f = unsafePartial (map fromJust <<< filter isJust <<< map f)
+foreign import filterImpl :: forall a. (a -> Boolean) -> Event a -> Event a
 
 -- | Create an `Event` which samples the latest values from the first event
 -- | at the times when the second event fires.
@@ -113,6 +129,11 @@ foreign import sampleOn :: forall a b. Event a -> Event (a -> b) -> Event b
 -- | the second event.
 sampleOn_ :: forall a b. Event a -> Event b -> Event a
 sampleOn_ a b = sampleOn a (b $> id)
+
+-- | Return only the events from the second stream that occur while the first
+-- | stream is true.
+when :: forall a. Event Boolean -> Event a -> Event a
+when ps = filtered <<< lift2 (\p x -> guard p $> x) ps
 
 -- | Subscribe to an `Event` by providing a callback.
 foreign import subscribe
