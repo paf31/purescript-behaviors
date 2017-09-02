@@ -248,7 +248,7 @@ solve2 g a0 da0 t f =
   fixB a0 \b ->
     integral g a0 t
       (fixB da0 \db ->
-        integral g a0 t (f b db))
+        integral g da0 t (f b db))
 
 -- | Solve a second order differential equation.
 -- |
