@@ -30,7 +30,7 @@ ready to render our results.
 This library takes a slightly novel approach by constructing behaviors from events.
 
 ```purescript
-newtype ABehavior event a = ABehavior (forall b. event (a -> b) -> event b)\
+newtype ABehavior event a = ABehavior (forall b. event (a -> b) -> event b)
 
 type Behavior = ABehavior Event
 ```
