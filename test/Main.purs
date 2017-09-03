@@ -52,7 +52,7 @@ scene { w, h } = pure background <> map renderCircles circles where
   --
   -- We can solve the differential equation by integration using `solve2'`.
   swell :: Behavior Number
-  swell = solve2' 2.0 15.0 Time.seconds \b db ->
+  swell = solve2' 2.0 5.0 Time.seconds \b db ->
     let f bs s ds | isEmpty bs = -8.0 * (s - 1.0) - ds * 2.0
                   | otherwise = 2.0 * (4.0 - s)
     in f <$> buttons <*> b <*> db

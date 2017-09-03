@@ -5,16 +5,16 @@ module FRP.Behavior.Mouse
 
 import Prelude
 
-import Control.Alt ((<|>))
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe)
+import Data.Nullable (toMaybe)
 import Data.Set as Set
-import FRP.Behavior (Behavior, step, unfold)
-import FRP.Event.Mouse (move, up, down)
+import FRP.Behavior (Behavior, behavior)
+import FRP.Event.Mouse (withPosition, withButtons)
 
 -- | A `Behavior` which reports the current mouse position, if it is known.
 position :: Behavior (Maybe { x :: Int, y :: Int })
-position = step Nothing (map Just move)
+position = behavior \e -> map (\{ value, pos } -> value (toMaybe pos)) (withPosition e)
 
 -- | A `Behavior` which reports the mouse buttons which are currently pressed.
 buttons :: Behavior (Set.Set Int)
-buttons = unfold id (Set.insert <$> down <|> Set.delete <$> up) Set.empty
+buttons = behavior \e -> map (\{ value, buttons } -> value (Set.fromFoldable buttons)) (withButtons e)
