@@ -57,8 +57,12 @@ scene { w, h } = pure background <> map renderCircles circles where
                   | otherwise = 2.0 * (4.0 - s)
     in f <$> buttons <*> b <*> db
 
+  -- This variant resets when the mouse is clicked.
+  swell' :: Behavior Number
+  swell' = switcher swell (down $> swell)
+
   circles :: Behavior (Array Circle)
-  circles = toCircles <$> Mouse.position <*> switcher swell (down $> swell) where
+  circles = toCircles <$> Mouse.position <*> swell' where
     toCircles m sw =
         sortBy (comparing (\{ x, y } -> -(dist x y m))) do
           i <- 0 .. 16
