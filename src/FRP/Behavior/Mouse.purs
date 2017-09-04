@@ -4,9 +4,10 @@ module FRP.Behavior.Mouse
   ) where
 
 import Prelude
+
 import Control.Alt ((<|>))
-import Data.Set as Set
 import Data.Maybe (Maybe(..))
+import Data.Set as Set
 import FRP.Behavior (Behavior, step, unfold)
 import FRP.Event.Mouse (move, up, down)
 
