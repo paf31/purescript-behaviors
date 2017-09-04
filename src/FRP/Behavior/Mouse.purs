@@ -17,4 +17,4 @@ position = behavior \e -> map (\{ value, pos } -> value (toMaybe pos)) (withPosi
 
 -- | A `Behavior` which reports the mouse buttons which are currently pressed.
 buttons :: Behavior (Set.Set Int)
-buttons = behavior \e -> map (\{ value, buttons } -> value (Set.fromFoldable buttons)) (withButtons e)
+buttons = behavior \e -> map (\{ value, buttons: bs } -> value (Set.fromFoldable bs)) (withButtons e)

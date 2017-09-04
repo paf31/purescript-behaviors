@@ -25,13 +25,12 @@ import Prelude
 import Control.Alt (alt)
 import Control.Apply (lift2)
 import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Unsafe (unsafePerformEff)
 import Data.Function (applyFlipped)
 import Data.Maybe (Maybe(..))
 import Data.Monoid (class Monoid, mempty)
 import Data.Tuple (Tuple(Tuple))
 import FRP (FRP)
-import FRP.Event (class IsEvent, Event, create, fold, keepLatest, sampleOn, subscribe, withLast)
+import FRP.Event (class IsEvent, Event, fixE, fold, keepLatest, sampleOn, subscribe, withLast)
 import FRP.Event.Time (animationFrame)
 
 -- | `ABehavior` is the more general type of `Behavior`, which is parameterized
@@ -184,11 +183,11 @@ derivative' = derivative (_ $ id)
 
 -- | Compute a fixed point
 fixB :: forall a. a -> (ABehavior Event a -> ABehavior Event a) -> ABehavior Event a
-fixB a f = behavior \s -> unsafePerformEff do
-  { event, push } <- create
-  let b = f (step a event)
-  _ <- subscribe (sample_ b s) push
-  pure (sampleOn event s)
+fixB a f =
+  behavior \s ->
+    fixE \event ->
+      let b = f (step a event)
+      in { input: sample_ b s, output: sampleOn event s }
 
 -- | Solve a first order differential equation of the form
 -- |

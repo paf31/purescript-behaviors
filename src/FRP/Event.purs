@@ -4,7 +4,7 @@ module FRP.Event
   , filter
   , keepLatest
   , subscribe
-  , create
+  , fixE
   , module Class
   ) where
 
@@ -87,6 +87,9 @@ foreign import sampleOn :: forall a b. Event a -> Event (a -> b) -> Event b
 -- | inner `Event`.
 foreign import keepLatest :: forall a. Event (Event a) -> Event a
 
+-- | Compute a fixed point
+foreign import fixE :: forall i o. (Event i -> { input :: Event i, output :: Event o }) -> Event o
+
 -- | Subscribe to an `Event` by providing a callback.
 -- |
 -- | `subscribe` returns a canceller function.
@@ -95,11 +98,3 @@ foreign import subscribe
    . Event a
   -> (a -> Eff (frp :: FRP | eff) r)
   -> Eff (frp :: FRP | eff) (Eff (frp :: FRP | eff) Unit)
-
--- | Create an event and a function which supplies a value to that event.
-foreign import create
-  :: forall eff a
-   . Eff (frp :: FRP | eff)
-         { event :: Event a
-         , push :: a -> Eff (frp :: FRP | eff) Unit
-         }

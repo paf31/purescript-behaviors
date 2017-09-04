@@ -81,13 +81,13 @@ Subscribe to an `Event` by providing a callback.
 
 `subscribe` returns a canceller function.
 
-#### `create`
+#### `fixE`
 
 ``` purescript
-create :: forall eff a. Eff (frp :: FRP | eff) { event :: Event a, push :: a -> Eff (frp :: FRP | eff) Unit }
+fixE :: forall i o. (Event i -> { input :: Event i, output :: Event o }) -> Event o
 ```
 
-Create an event and a function which supplies a value to that event.
+Compute a fixed point
 
 
 ### Re-exported from FRP.Event.Class:
