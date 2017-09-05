@@ -1,7 +1,5 @@
 module FRP.Event
   ( Event
-  , never
-  , keepLatest
   , subscribe
   , module Class
   ) where
@@ -77,6 +75,7 @@ instance monoidEvent :: Monoid a => Monoid (Event a) where
 
 instance eventIsEvent :: Class.IsEvent Event where
   fold = fold
+  keepLatest = keepLatest
   sampleOn = sampleOn
   fix = fix
 

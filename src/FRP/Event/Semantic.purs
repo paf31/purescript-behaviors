@@ -206,9 +206,15 @@ instance isEventSemantic :: Bounded time => IsEvent (Semantic time) where
   sampleOn (Semantic xs) (Semantic ys) = Semantic (filterMap go ys) where
     go (Tuple t f) = map f <$> latestAt t xs
 
+  keepLatest :: forall a. Semantic time (Semantic time a) -> Semantic time a
+  keepLatest (Semantic es) = Semantic (go es) where
+    go Nil = Nil
+    go (Tuple _ (Semantic xs) : Nil) = xs
+    go (Tuple _ (Semantic xs) : es'@(Tuple tNext _ : _)) = filter ((_ < tNext) <<< fst) xs <> go es'
+
   fix :: forall i o
        . (Semantic time i -> { input :: Semantic time i
                              , output :: Semantic time o
                              })
       -> Semantic time o
-  fix = unsafeCrashWith "FRP.Event.Semantic: fix is not yet implemented"
+  fix _ = unsafeCrashWith "FRP.Event.Semantic: fix is not yet implemented"
