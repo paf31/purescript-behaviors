@@ -4,10 +4,10 @@ module FRP.Event.Class
   , folded
   , count
   , mapAccum
-  , module Data.Filterable
   , withLast
   , sampleOn
   , sampleOn_
+  , module Data.Filterable
   ) where
 
 import Prelude

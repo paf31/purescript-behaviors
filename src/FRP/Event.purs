@@ -11,11 +11,10 @@ import Prelude
 import Control.Alternative (class Alt, class Alternative, class Plus)
 import Control.Apply (lift2)
 import Control.Monad.Eff (Eff)
-import Data.Filterable (class Filterable)
-import Data.Either (fromLeft, isLeft, fromRight, isRight)
-import Data.Maybe (Maybe, fromJust, isJust)
+import Data.Filterable (class Filterable, filterMap)
+import Data.Either (either, hush)
+import Data.Maybe (Maybe(..), fromJust, isJust)
 import Data.Monoid (class Monoid, mempty)
-import Data.Tuple (Tuple(..), fst, snd)
 import FRP (FRP)
 import FRP.Event.Class as Class
 import Partial.Unsafe (unsafePartial)
@@ -51,9 +50,9 @@ instance filterableEvent :: Filterable Event where
 
   partition p xs = { yes: filter p xs, no: filter (not <<< p) xs }
 
-  partitionMap f xs = let ys = f <$> xs in
-    { left:  unsafePartial (map fromLeft  <<< filter isLeft ) ys
-    , right: unsafePartial (map fromRight <<< filter isRight) ys
+  partitionMap f xs =
+    { left: filterMap (either Just (const Nothing) <<< f) xs
+    , right: filterMap (hush <<< f) xs
     }
 
 instance applyEvent :: Apply Event where
