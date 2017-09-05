@@ -1,9 +1,9 @@
 module Test.Main where
 
 import Prelude
-import FRP.Behavior.Mouse as Mouse
-import FRP.Behavior.Time as Time
-import Color (black, lighten, white)
+
+import Color (lighten)
+import Color.Scheme.MaterialDesign (blueGrey)
 import Control.Monad.Eff (Eff)
 import Data.Array (sortBy, (..))
 import Data.Foldable (foldMap)
@@ -11,8 +11,10 @@ import Data.Int (toNumber)
 import Data.Maybe (fromJust, maybe)
 import Data.Set (isEmpty)
 import FRP (FRP)
-import FRP.Behavior (Behavior, animate, derivative', fixB, integral')
+import FRP.Behavior (Behavior, animate, solve2')
 import FRP.Behavior.Mouse (buttons)
+import FRP.Behavior.Mouse as Mouse
+import FRP.Behavior.Time as Time
 import Global (infinity)
 import Graphics.Canvas (CANVAS, getCanvasElementById, getCanvasHeight, getCanvasWidth, getContext2D, setCanvasHeight, setCanvasWidth)
 import Graphics.Drawing (Drawing, circle, fillColor, filled, lineWidth, outlineColor, outlined, rectangle, render, scale, translate)
@@ -23,7 +25,7 @@ type Circle = { x :: Number, y :: Number, size :: Number }
 scene :: { w :: Number, h :: Number } -> Behavior Drawing
 scene { w, h } = pure background <> map renderCircles circles where
   background :: Drawing
-  background = filled (fillColor white) (rectangle 0.0 0.0 w h)
+  background = filled (fillColor blueGrey) (rectangle 0.0 0.0 w h)
 
   scaleFactor :: Number
   scaleFactor = max w h / 16.0
@@ -32,14 +34,11 @@ scene { w, h } = pure background <> map renderCircles circles where
   renderCircle { x, y, size } =
     scale scaleFactor scaleFactor <<< translate x y <<< scale size size $
       outlined
-        (outlineColor (lighten (0.8 - size * 0.2) black) <> lineWidth ((1.0 + size * 2.0) / scaleFactor))
+        (outlineColor (lighten (0.2 + size * 0.2) blueGrey) <> lineWidth ((1.0 + size * 2.0) / scaleFactor))
         (circle 0.0 0.0 0.5)
 
   renderCircles :: Array Circle -> Drawing
   renderCircles = foldMap renderCircle
-
-  seconds :: Behavior Number
-  seconds = map ((_ / 1000.0) <<< toNumber) Time.millisSinceEpoch
 
   -- `swell` is an interactive function of time defined by a differential equation:
   --
@@ -50,12 +49,12 @@ scene { w, h } = pure background <> map renderCircles circles where
   -- So the function exhibits either decay or growth depending on if
   -- the mouse is pressed or not.
   --
-  -- We can solve the differential equation using an integral and a fixed point.
+  -- We can solve the differential equation by integration using `solve2'`.
   swell :: Behavior Number
-  swell = fixB 2.0 \b ->
+  swell = solve2' 2.0 0.0 Time.seconds \b db ->
     let f bs s ds | isEmpty bs = -8.0 * (s - 1.0) - ds * 2.0
-                  | otherwise = 2.0 * (4.0 - s) in
-    integral' 2.0 seconds (integral' 0.0 seconds (f <$> buttons <*> b <*> derivative' seconds b))
+                  | otherwise = 2.0 * (4.0 - s)
+    in f <$> buttons <*> b <*> db
 
   circles :: Behavior (Array Circle)
   circles = toCircles <$> Mouse.position <*> swell where

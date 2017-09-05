@@ -1,5 +1,6 @@
 module FRP.Behavior
   ( Behavior
+  , ABehavior
   , behavior
   , step
   , sample
@@ -10,11 +11,16 @@ module FRP.Behavior
   , integral'
   , derivative
   , derivative'
+  , solve
+  , solve'
+  , solve2
+  , solve2'
   , fixB
   , animate
   ) where
 
 import Prelude
+
 import Control.Alt (alt)
 import Control.Apply (lift2)
 import Control.Monad.Eff (Eff)
@@ -24,55 +30,63 @@ import Data.Maybe (Maybe(..))
 import Data.Monoid (class Monoid, mempty)
 import Data.Tuple (Tuple(Tuple))
 import FRP (FRP)
-import FRP.Event (Event, create, fold, sampleOn, subscribe, withLast)
+import FRP.Event (class IsEvent, Event, create, fold, sampleOn, subscribe, withLast)
 import FRP.Event.Time (animationFrame)
+
+-- | `ABehavior` is the more general type of `Behavior`, which is parameterized
+-- | over some underlying `event` type.
+-- |
+-- | Normally, you should use `Behavior` instead, but this type
+-- | can also be used with other types of events, including the ones in the
+-- | `Semantic` module.
+newtype ABehavior event a = ABehavior (forall b. event (a -> b) -> event b)
 
 -- | A `Behavior` acts like a continuous function of time.
 -- |
 -- | We can construct a sample a `Behavior` from some `Event`, combine `Behavior`s
 -- | using `Applicative`, and sample a final `Behavior` on some other `Event`.
-newtype Behavior a = Behavior (forall b. Event (a -> b) -> Event b)
+type Behavior = ABehavior Event
 
-instance functorBehavior :: Functor Behavior where
-  map f (Behavior b) = Behavior \e -> b (map (_ <<< f) e)
+instance functorABehavior :: Functor event => Functor (ABehavior event) where
+  map f (ABehavior b) = ABehavior \e -> b (map (_ <<< f) e)
 
-instance applyBehavior :: Apply Behavior where
-  apply (Behavior f) (Behavior a) = Behavior \e -> a (f (compose <$> e))
+instance applyABehavior :: Functor event => Apply (ABehavior event) where
+  apply (ABehavior f) (ABehavior a) = ABehavior \e -> a (f (compose <$> e))
 
-instance applicativeBehavior :: Applicative Behavior where
-  pure a = Behavior \e -> applyFlipped a <$> e
+instance applicativeABehavior :: Functor event => Applicative (ABehavior event) where
+  pure a = ABehavior \e -> applyFlipped a <$> e
 
-instance semigroupBehavior :: Semigroup a => Semigroup (Behavior a) where
+instance semigroupABehavior :: (Functor event, Semigroup a) => Semigroup (ABehavior event a) where
   append = lift2 append
 
-instance monoidBehavior :: Monoid a => Monoid (Behavior a) where
+instance monoidABehavior :: (Functor event, Monoid a) => Monoid (ABehavior event a) where
   mempty = pure mempty
 
 -- | Construct a `Behavior` from its sampling function.
-behavior :: forall a. (forall b. Event (a -> b) -> Event b) -> Behavior a
-behavior = Behavior
+behavior :: forall event a. (forall b. event (a -> b) -> event b) -> ABehavior event a
+behavior = ABehavior
 
 -- | Create a `Behavior` which is updated when an `Event` fires, by providing
 -- | an initial value.
-step :: forall a. a -> Event a -> Behavior a
-step a e = Behavior (sampleOn (pure a `alt` e))
+step :: forall event a. IsEvent event => a -> event a -> ABehavior event a
+step a e = ABehavior (sampleOn (pure a `alt` e))
 
 -- | Create a `Behavior` which is updated when an `Event` fires, by providing
 -- | an initial value and a function to combine the current value with a new event
 -- | to create a new value.
-unfold :: forall a b. (a -> b -> b) -> Event a -> b -> Behavior b
+unfold :: forall event a b. IsEvent event => (a -> b -> b) -> event a -> b -> ABehavior event b
 unfold f e a = step a (fold f e a)
 
 -- | Sample a `Behavior` on some `Event`.
-sample :: forall a b. Behavior a -> Event (a -> b) -> Event b
-sample (Behavior b) e = b e
+sample :: forall event a b. ABehavior event a -> event (a -> b) -> event b
+sample (ABehavior b) e = b e
 
 -- | Sample a `Behavior` on some `Event` by providing a combining function.
-sampleBy :: forall a b c. (a -> b -> c) -> Behavior a -> Event b -> Event c
+sampleBy :: forall event a b c. IsEvent event => (a -> b -> c) -> ABehavior event a -> event b -> event c
 sampleBy f b e = sample (map f b) (map applyFlipped e)
 
 -- | Sample a `Behavior` on some `Event`, discarding the event's values.
-sample_ :: forall a b. Behavior a -> Event b -> Event a
+sample_ :: forall event a b. IsEvent event => ABehavior event a -> event b -> event a
 sample_ = sampleBy const
 
 -- | Integrate with respect to some measure of time.
@@ -84,9 +98,18 @@ sample_ = sampleBy const
 -- | this, the user should provide a _grate_ which lifts a multiplication
 -- | function on `t` to a function on `a`. Simple examples where `t ~ a` can use
 -- | the `integral'` function instead.
-integral :: forall a t. Field t => Semiring a => (((a -> t) -> t) -> a) -> a -> Behavior t -> Behavior a -> Behavior a
+integral
+  :: forall event a t
+   . IsEvent event
+  => Field t
+  => Semiring a
+  => (((a -> t) -> t) -> a)
+  -> a
+  -> ABehavior event t
+  -> ABehavior event a
+  -> ABehavior event a
 integral g initial t b =
-    Behavior \e ->
+    ABehavior \e ->
       let x = sample b (e $> id)
           y = withLast (sampleBy Tuple t x)
           z = fold approx y initial
@@ -102,7 +125,14 @@ integral g initial t b =
 -- |
 -- | This function is a simpler version of `integral` where the function being
 -- | integrated takes values in the same field used to represent time.
-integral' :: forall t. Field t => t -> Behavior t -> Behavior t -> Behavior t
+integral'
+  :: forall event t
+   . IsEvent event
+  => Field t
+  => t
+  -> ABehavior event t
+  -> ABehavior event t
+  -> ABehavior event t
 integral' = integral (_ $ id)
 
 -- | Differentiate with respect to some measure of time.
@@ -114,9 +144,17 @@ integral' = integral (_ $ id)
 -- | this, the user should provide a grate which lifts a division
 -- | function on `t` to a function on `a`. Simple examples where `t ~ a` can use
 -- | the `derivative'` function.
-derivative :: forall a t. Field t => Ring a => (((a -> t) -> t) -> a) -> Behavior t -> Behavior a -> Behavior a
+derivative
+  :: forall event a t
+   . IsEvent event
+  => Field t
+  => Ring a
+  => (((a -> t) -> t) -> a)
+  -> ABehavior event t
+  -> ABehavior event a
+  -> ABehavior event a
 derivative g t b =
-    Behavior \e ->
+    ABehavior \e ->
       let x = sample b (e $> id)
           y = withLast (sampleBy Tuple t x)
           z = map approx y
@@ -129,21 +167,107 @@ derivative g t b =
 -- |
 -- | This function is a simpler version of `derivative` where the function being
 -- | differentiated takes values in the same field used to represent time.
-derivative' :: forall t. Field t => Behavior t -> Behavior t -> Behavior t
+derivative'
+  :: forall event t
+   . IsEvent event
+  => Field t
+  => ABehavior event t
+  -> ABehavior event t
+  -> ABehavior event t
 derivative' = derivative (_ $ id)
 
 -- | Compute a fixed point
-fixB :: forall a. a -> (Behavior a -> Behavior a) -> Behavior a
+fixB :: forall a. a -> (ABehavior Event a -> ABehavior Event a) -> ABehavior Event a
 fixB a f = behavior \s -> unsafePerformEff do
   { event, push } <- create
   let b = f (step a event)
   subscribe (sample_ b s) push
   pure (sampleOn event s)
 
+-- | Solve a first order differential equation of the form
+-- |
+-- | ```
+-- | da/dt = f a
+-- | ```
+-- |
+-- | by integrating once (specifying the initial conditions).
+-- |
+-- | For example, the exponential function with growth rate `⍺`:
+-- |
+-- | ```purescript
+-- | exp = solve' 1.0 Time.seconds (⍺ * _)
+-- | ```
+solve
+  :: forall t a
+   . Field t
+  => Semiring a
+  => (((a -> t) -> t) -> a)
+  -> a
+  -> Behavior t
+  -> (Behavior a -> Behavior a)
+  -> Behavior a
+solve g a0 t f = fixB a0 \b -> integral g a0 t (f b)
+
+-- | Solve a first order differential equation.
+-- |
+-- | This function is a simpler version of `solve` where the function being
+-- | integrated takes values in the same field used to represent time.
+solve'
+  :: forall a
+   . Field a
+  => a
+  -> Behavior a
+  -> (Behavior a -> Behavior a)
+  -> Behavior a
+solve' = solve (_ $ id)
+
+-- | Solve a second order differential equation of the form
+-- |
+-- | ```
+-- | d^2a/dt^2 = f a (da/dt)
+-- | ```
+-- |
+-- | by integrating twice (specifying the initial conditions).
+-- |
+-- | For example, an (damped) oscillator:
+-- |
+-- | ```purescript
+-- | oscillate = solve2' 1.0 0.0 Time.seconds (\x dx -> -⍺ * x - δ * dx)
+-- | ```
+solve2
+  :: forall t a
+   . Field t
+  => Semiring a
+  => (((a -> t) -> t) -> a)
+  -> a
+  -> a
+  -> Behavior t
+  -> (Behavior a -> Behavior a -> Behavior a)
+  -> Behavior a
+solve2 g a0 da0 t f =
+  fixB a0 \b ->
+    integral g a0 t
+      (fixB da0 \db ->
+        integral g da0 t (f b db))
+
+-- | Solve a second order differential equation.
+-- |
+-- | This function is a simpler version of `solve2` where the function being
+-- | integrated takes values in the same field used to represent time.
+solve2'
+  :: forall a
+   . Field a
+  => a
+  -> a
+  -> Behavior a
+  -> (Behavior a -> Behavior a -> Behavior a)
+  -> Behavior a
+solve2' = solve2 (_ $ id)
+
 -- | Animate a `Behavior` by providing a rendering function.
 animate
   :: forall scene eff
-   . Behavior scene
+   . ABehavior Event scene
   -> (scene -> Eff (frp :: FRP | eff) Unit)
   -> Eff (frp :: FRP | eff) Unit
 animate scene render = subscribe (sample_ scene animationFrame) render

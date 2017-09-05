@@ -1,5 +1,22 @@
 ## Module FRP.Event
 
+#### `fold`
+
+``` purescript
+fold :: forall a b. (a -> b -> b) -> Event a -> b -> Event b
+```
+
+Fold over values received from some `Event`, creating a new `Event`.
+
+#### `sampleOn`
+
+``` purescript
+sampleOn :: forall a b. Event a -> Event (a -> b) -> Event b
+```
+
+Create an `Event` which samples the latest values from the first event
+at the times when the second event fires.
+
 #### `Event`
 
 ``` purescript
@@ -28,6 +45,7 @@ Plus Event
 Alternative Event
 (Semigroup a) => Semigroup (Event a)
 (Monoid a) => Monoid (Event a)
+IsEvent Event
 ```
 
 #### `never`
@@ -36,38 +54,6 @@ Alternative Event
 never :: forall a. Event a
 ```
 
-#### `fold`
-
-``` purescript
-fold :: forall a b. (a -> b -> b) -> Event a -> b -> Event b
-```
-
-Fold over values received from some `Event`, creating a new `Event`.
-
-#### `count`
-
-``` purescript
-count :: forall a. Event a -> Event Int
-```
-
-Count the number of events received.
-
-#### `folded`
-
-``` purescript
-folded :: forall a. Monoid a => Event a -> Event a
-```
-
-Count the number of events received.
-
-#### `withLast`
-
-``` purescript
-withLast :: forall a. Event a -> Event { now :: a, last :: Maybe a }
-```
-
-Compute differences between successive event values.
-
 #### `filter`
 
 ``` purescript
@@ -75,33 +61,6 @@ filter :: forall a. (a -> Boolean) -> Event a -> Event a
 ```
 
 Create an `Event` which only fires when a predicate holds.
-
-#### `mapMaybe`
-
-``` purescript
-mapMaybe :: forall a b. (a -> Maybe b) -> Event a -> Event b
-```
-
-Filter out any `Nothing` events.
-
-#### `sampleOn`
-
-``` purescript
-sampleOn :: forall a b. Event a -> Event (a -> b) -> Event b
-```
-
-Create an `Event` which samples the latest values from the first event
-at the times when the second event fires.
-
-#### `sampleOn_`
-
-``` purescript
-sampleOn_ :: forall a b. Event a -> Event b -> Event a
-```
-
-Create an `Event` which samples the latest values from the first event
-at the times when the second event fires, ignoring the values produced by
-the second event.
 
 #### `subscribe`
 
@@ -119,4 +78,71 @@ create :: forall eff a. Eff (frp :: FRP | eff) { event :: Event a, push :: a -> 
 
 Create an event and a function which supplies a value to that event.
 
+
+### Re-exported from FRP.Event.Class:
+
+#### `IsEvent`
+
+``` purescript
+class (Alternative event) <= IsEvent event  where
+  fold :: forall a b. (a -> b -> b) -> event a -> b -> event b
+  mapMaybe :: forall a b. (a -> Maybe b) -> event a -> event b
+  sampleOn :: forall a b. event a -> event (a -> b) -> event b
+```
+
+Functions which an `Event` type should implement, so that
+`Behavior`s can be defined in terms of any such event type:
+
+- `fold`: combines incoming values using the specified function,
+starting with the specific initial value.
+- `mapMaybe`: discards incoming values which do not satisfy a predicate.
+- `sampleOn`: samples an event at the times when a second event fires.
+
+#### `withLast`
+
+``` purescript
+withLast :: forall event a. IsEvent event => event a -> event { now :: a, last :: Maybe a }
+```
+
+Compute differences between successive event values.
+
+#### `sampleOn_`
+
+``` purescript
+sampleOn_ :: forall event a b. IsEvent event => event a -> event b -> event a
+```
+
+Create an `Event` which samples the latest values from the first event
+at the times when the second event fires, ignoring the values produced by
+the second event.
+
+#### `mapAccum`
+
+``` purescript
+mapAccum :: forall event a b c. IsEvent event => (a -> b -> Tuple b c) -> event a -> b -> event c
+```
+
+Map over an event with an accumulator.
+
+For example, to keep the index of the current event:
+
+```purescript
+mapAccum (\x i -> Tuple (i + 1) (Tuple x i)) 0`.
+```
+
+#### `folded`
+
+``` purescript
+folded :: forall event a. IsEvent event => Monoid a => event a -> event a
+```
+
+Combine subsequent events using a `Monoid`.
+
+#### `count`
+
+``` purescript
+count :: forall event a. IsEvent event => event a -> event Int
+```
+
+Count the number of events received.
 

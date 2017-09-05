@@ -3,6 +3,7 @@ module FRP.Behavior.Keyboard
   ) where
 
 import Prelude
+
 import Control.Alt ((<|>))
 import Data.Set as Set
 import FRP.Behavior (Behavior, unfold)

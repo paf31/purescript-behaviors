@@ -19,7 +19,7 @@ Create an event which fires every frame (using `requestAnimationFrame`).
 #### `withTime`
 
 ``` purescript
-withTime :: forall a. Event a -> Event { value :: a, time :: Int }
+withTime :: forall a. Event a -> Event { value :: a, time :: Number }
 ```
 
 Create an event which reports the current time in milliseconds since the epoch.
