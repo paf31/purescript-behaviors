@@ -105,13 +105,15 @@ import Prelude
 import Control.Alt (class Alt)
 import Control.Alternative (class Alternative, class Plus)
 import Control.Apply (lift2)
+import Data.Either (Either(..))
+import Data.Filterable (class Filterable, filter, filterMap, partition, partitionMap)
 import Data.List (List(..), (:))
 import Data.List as List
 import Data.Maybe (Maybe)
 import Data.Monoid (class Monoid, mempty)
 import Data.Newtype (class Newtype)
 import Data.Traversable (mapAccumL, traverse)
-import Data.Tuple (Tuple(..), fst)
+import Data.Tuple (Tuple(..), fst, snd)
 import FRP.Behavior (ABehavior, sample)
 import FRP.Event (class IsEvent)
 import Partial.Unsafe (unsafePartial)
@@ -153,7 +155,7 @@ meaning b t = unsafePartial valueOf (sample b (once t id)) where
 
 instance applySemantic :: Ord time => Apply (Semantic time) where
   apply (Semantic xs) (Semantic ys) =
-      Semantic (List.mapMaybe fx xs `merge` List.mapMaybe fy ys)
+      Semantic (filterMap fx xs `merge` filterMap fy ys)
     where
       fx (Tuple t f) = map f <$> latestAt t ys
       fy (Tuple t a) = map (_ $ a) <$> latestAt t xs
@@ -175,7 +177,23 @@ instance semigroupSemantic :: (Ord time, Semigroup a) => Semigroup (Semantic tim
 instance monoidSemantic :: (Bounded time, Monoid a) => Monoid (Semantic time a) where
   mempty = pure mempty
 
-instance semanticIsEvent :: Bounded time => IsEvent (Semantic time) where
+instance filterableSemantic :: Filterable (Semantic time) where
+  filter p (Semantic xs) = Semantic (filter (p <<< snd) xs)
+
+  filterMap p (Semantic xs) = Semantic (filterMap (traverse p) xs)
+
+  partitionMap p (Semantic xs) = go (partitionMap (split p) xs)
+    where
+      go { left, right } = { left: Semantic left, right: Semantic right }
+
+      split p' (Tuple x a) = case p' a of
+        Left a'  -> Left (Tuple x a')
+        Right a' -> Right (Tuple x a')
+
+  partition p (Semantic xs) = go (partition (p <<< snd) xs)
+    where go { yes, no } = { yes: Semantic yes, no: Semantic no }
+
+instance isEventSemantic :: Bounded time => IsEvent (Semantic time) where
   fold :: forall a b. (a -> b -> b) -> Semantic time a -> b -> Semantic time b
   fold f (Semantic xs) b0 = Semantic ((mapAccumL step b0 xs).value) where
     step b (Tuple t a) =
@@ -185,8 +203,5 @@ instance semanticIsEvent :: Bounded time => IsEvent (Semantic time) where
          }
 
   sampleOn :: forall a b. Semantic time a -> Semantic time (a -> b) -> Semantic time b
-  sampleOn (Semantic xs) (Semantic ys) = Semantic (List.mapMaybe go ys) where
+  sampleOn (Semantic xs) (Semantic ys) = Semantic (filterMap go ys) where
     go (Tuple t f) = map f <$> latestAt t xs
-
-  mapMaybe :: forall a b. (a -> Maybe b) -> Semantic time a -> Semantic time b
-  mapMaybe f (Semantic xs) = Semantic (List.mapMaybe (traverse f) xs)
