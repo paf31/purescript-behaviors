@@ -30,7 +30,7 @@ import Data.Maybe (Maybe(..))
 import Data.Monoid (class Monoid, mempty)
 import Data.Tuple (Tuple(Tuple))
 import FRP (FRP)
-import FRP.Event (class IsEvent, Event, fixE, fold, keepLatest, sampleOn, subscribe, withLast)
+import FRP.Event (class IsEvent, Event, fix, fold, keepLatest, sampleOn, subscribe, withLast)
 import FRP.Event.Time (animationFrame)
 
 -- | `ABehavior` is the more general type of `Behavior`, which is parameterized
@@ -185,7 +185,7 @@ derivative' = derivative (_ $ id)
 fixB :: forall a. a -> (ABehavior Event a -> ABehavior Event a) -> ABehavior Event a
 fixB a f =
   behavior \s ->
-    fixE \event ->
+    fix \event ->
       let b = f (step a event)
       in { input: sample_ b s, output: sampleOn event s }
 

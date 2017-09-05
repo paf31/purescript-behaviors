@@ -164,7 +164,7 @@ function subject() {
   };
 };
 
-exports.fixE = function(f) {
+exports.fix = function(f) {
   var s = subject();
   var io = f(s.event);
 

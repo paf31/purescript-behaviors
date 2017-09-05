@@ -1,10 +1,8 @@
 module FRP.Event
   ( Event
   , never
-  , filter
   , keepLatest
   , subscribe
-  , fixE
   , module Class
   ) where
 
@@ -13,7 +11,9 @@ import Prelude
 import Control.Alternative (class Alt, class Alternative, class Plus)
 import Control.Apply (lift2)
 import Control.Monad.Eff (Eff)
-import Data.Maybe (Maybe, fromJust, isJust)
+import Data.Filterable (class Filterable, filterMap)
+import Data.Either (either, hush)
+import Data.Maybe (Maybe(..), fromJust, isJust)
 import Data.Monoid (class Monoid, mempty)
 import FRP (FRP)
 import FRP.Event.Class as Class
@@ -43,6 +43,18 @@ foreign import never :: forall a. Event a
 instance functorEvent :: Functor Event where
   map = mapImpl
 
+instance filterableEvent :: Filterable Event where
+  filter = filter
+
+  filterMap f = unsafePartial (map fromJust <<< filter isJust <<< map f)
+
+  partition p xs = { yes: filter p xs, no: filter (not <<< p) xs }
+
+  partitionMap f xs =
+    { left: filterMap (either Just (const Nothing) <<< f) xs
+    , right: filterMap (hush <<< f) xs
+    }
+
 instance applyEvent :: Apply Event where
   apply = applyImpl
 
@@ -66,9 +78,7 @@ instance monoidEvent :: Monoid a => Monoid (Event a) where
 instance eventIsEvent :: Class.IsEvent Event where
   fold = fold
   sampleOn = sampleOn
-
-  mapMaybe :: forall a b. (a -> Maybe b) -> Event a -> Event b
-  mapMaybe f = unsafePartial (map fromJust <<< filter isJust <<< map f)
+  fix = fix
 
 -- | Create an `Event` which combines with the latest values from two other events.
 foreign import applyImpl :: forall a b. Event (a -> b) -> Event a -> Event b
@@ -88,7 +98,7 @@ foreign import sampleOn :: forall a b. Event a -> Event (a -> b) -> Event b
 foreign import keepLatest :: forall a. Event (Event a) -> Event a
 
 -- | Compute a fixed point
-foreign import fixE :: forall i o. (Event i -> { input :: Event i, output :: Event o }) -> Event o
+foreign import fix :: forall i o. (Event i -> { input :: Event i, output :: Event o }) -> Event o
 
 -- | Subscribe to an `Event` by providing a callback.
 -- |

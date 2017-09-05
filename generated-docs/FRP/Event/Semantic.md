@@ -118,6 +118,7 @@ Functor (Semantic time)
 (Bounded time) => Alternative (Semantic time)
 (Ord time, Semigroup a) => Semigroup (Semantic time a)
 (Bounded time, Monoid a) => Monoid (Semantic time a)
+Filterable (Semantic time)
 (Bounded time) => IsEvent (Semantic time)
 ```
 

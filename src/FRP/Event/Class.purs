@@ -4,15 +4,17 @@ module FRP.Event.Class
   , folded
   , count
   , mapAccum
-  , mapMaybe
   , withLast
   , sampleOn
   , sampleOn_
+  , fix
+  , module Data.Filterable
   ) where
 
 import Prelude
 
 import Control.Alternative (class Alternative)
+import Data.Filterable (class Filterable, filterMap)
 import Data.Maybe (Maybe(..))
 import Data.Monoid (class Monoid, mempty)
 import Data.Tuple (Tuple(..), snd)
@@ -22,12 +24,13 @@ import Data.Tuple (Tuple(..), snd)
 -- |
 -- | - `fold`: combines incoming values using the specified function,
 -- | starting with the specific initial value.
--- | - `mapMaybe`: discards incoming values which do not satisfy a predicate.
 -- | - `sampleOn`: samples an event at the times when a second event fires.
-class Alternative event <= IsEvent event where
+-- | - `fix`: compute a fixed point, by feeding output events back in as
+-- | inputs.
+class (Alternative event, Filterable event) <= IsEvent event where
   fold :: forall a b. (a -> b -> b) -> event a -> b -> event b
-  mapMaybe :: forall a b. (a -> Maybe b) -> event a -> event b
   sampleOn :: forall a b. event a -> event (a -> b) -> event b
+  fix :: forall i o. (event i -> { input :: event i, output :: event o }) -> event o
 
 -- | Count the number of events received.
 count :: forall event a. IsEvent event => event a -> event Int
@@ -39,7 +42,7 @@ folded s = fold append s mempty
 
 -- | Compute differences between successive event values.
 withLast :: forall event a. IsEvent event => event a -> event { now :: a, last :: Maybe a }
-withLast e = mapMaybe id (fold step e Nothing) where
+withLast e = filterMap id (fold step e Nothing) where
   step a Nothing           = Just { now: a, last: Nothing }
   step a (Just { now: b }) = Just { now: a, last: Just b }
 
@@ -51,7 +54,7 @@ withLast e = mapMaybe id (fold step e Nothing) where
 -- | mapAccum (\x i -> Tuple (i + 1) (Tuple x i)) 0`.
 -- | ```
 mapAccum :: forall event a b c. IsEvent event => (a -> b -> Tuple b c) -> event a -> b -> event c
-mapAccum f xs acc = mapMaybe snd
+mapAccum f xs acc = filterMap snd
   $ fold (\a (Tuple b _) -> pure <$> f a b) xs
   $ Tuple acc Nothing
 
