@@ -1,8 +1,6 @@
 module FRP.Event
   ( Event
-  , never
   , subscribe
-  , create
   , module Class
   ) where
 
@@ -77,7 +75,9 @@ instance monoidEvent :: Monoid a => Monoid (Event a) where
 
 instance eventIsEvent :: Class.IsEvent Event where
   fold = fold
+  keepLatest = keepLatest
   sampleOn = sampleOn
+  fix = fix
 
 -- | Create an `Event` which combines with the latest values from two other events.
 foreign import applyImpl :: forall a b. Event (a -> b) -> Event a -> Event b
@@ -92,17 +92,18 @@ foreign import filter :: forall a. (a -> Boolean) -> Event a -> Event a
 -- | at the times when the second event fires.
 foreign import sampleOn :: forall a b. Event a -> Event (a -> b) -> Event b
 
+-- | Flatten a nested `Event`, reporting values only from the most recent
+-- | inner `Event`.
+foreign import keepLatest :: forall a. Event (Event a) -> Event a
+
+-- | Compute a fixed point
+foreign import fix :: forall i o. (Event i -> { input :: Event i, output :: Event o }) -> Event o
+
 -- | Subscribe to an `Event` by providing a callback.
+-- |
+-- | `subscribe` returns a canceller function.
 foreign import subscribe
   :: forall eff a r
    . Event a
   -> (a -> Eff (frp :: FRP | eff) r)
-  -> Eff (frp :: FRP | eff) Unit
-
--- | Create an event and a function which supplies a value to that event.
-foreign import create
-  :: forall eff a
-   . Eff (frp :: FRP | eff)
-         { event :: Event a
-         , push :: a -> Eff (frp :: FRP | eff) Unit
-         }
+  -> Eff (frp :: FRP | eff) (Eff (frp :: FRP | eff) Unit)

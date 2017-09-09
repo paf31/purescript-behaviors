@@ -116,7 +116,7 @@ import Data.Traversable (mapAccumL, traverse)
 import Data.Tuple (Tuple(..), fst, snd)
 import FRP.Behavior (ABehavior, sample)
 import FRP.Event (class IsEvent)
-import Partial.Unsafe (unsafePartial)
+import Partial.Unsafe (unsafeCrashWith, unsafePartial)
 
 -- | The semantic domain for events
 newtype Semantic time a = Semantic (List.List (Tuple time a))
@@ -205,3 +205,16 @@ instance isEventSemantic :: Bounded time => IsEvent (Semantic time) where
   sampleOn :: forall a b. Semantic time a -> Semantic time (a -> b) -> Semantic time b
   sampleOn (Semantic xs) (Semantic ys) = Semantic (filterMap go ys) where
     go (Tuple t f) = map f <$> latestAt t xs
+
+  keepLatest :: forall a. Semantic time (Semantic time a) -> Semantic time a
+  keepLatest (Semantic es) = Semantic (go es) where
+    go Nil = Nil
+    go (Tuple _ (Semantic xs) : Nil) = xs
+    go (Tuple _ (Semantic xs) : es'@(Tuple tNext _ : _)) = filter ((_ < tNext) <<< fst) xs <> go es'
+
+  fix :: forall i o
+       . (Semantic time i -> { input :: Semantic time i
+                             , output :: Semantic time o
+                             })
+      -> Semantic time o
+  fix _ = unsafeCrashWith "FRP.Event.Semantic: fix is not yet implemented"

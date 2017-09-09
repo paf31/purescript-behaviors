@@ -9,6 +9,7 @@ module FRP.Behavior
   , gate
   , gateBy
   , unfold
+  , switcher
   , integral
   , integral'
   , derivative
@@ -26,14 +27,13 @@ import Prelude
 import Control.Alt (alt)
 import Control.Apply (lift2)
 import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Unsafe (unsafePerformEff)
 import Data.Filterable (filtered)
 import Data.Function (applyFlipped)
 import Data.Maybe (Maybe(..))
 import Data.Monoid (class Monoid, mempty)
 import Data.Tuple (Tuple(Tuple))
 import FRP (FRP)
-import FRP.Event (class IsEvent, Event, create, fold, sampleOn, subscribe, withLast)
+import FRP.Event (class IsEvent, Event, fix, fold, keepLatest, sampleOn, subscribe, withLast)
 import FRP.Event.Time (animationFrame)
 
 -- | `ABehavior` is the more general type of `Behavior`, which is parameterized
@@ -91,6 +91,11 @@ sampleBy f b e = sample (map f b) (map applyFlipped e)
 -- | Sample a `Behavior` on some `Event`, discarding the event's values.
 sample_ :: forall event a b. IsEvent event => ABehavior event a -> event b -> event a
 sample_ = sampleBy const
+
+-- | Switch `Behavior`s based on an `Event`.
+switcher :: forall a. Behavior a -> Event (Behavior a) -> Behavior a
+switcher b0 e = behavior \s ->
+  keepLatest (pure (sample b0 s) `alt` map (\b -> sample b s) e)
 
 -- | Sample a `Behavior` on some `Event` by providing a predicate function.
 gateBy :: forall event p a. IsEvent event => (p -> a -> Boolean) -> ABehavior event p -> event a -> event a
@@ -189,11 +194,11 @@ derivative' = derivative (_ $ id)
 
 -- | Compute a fixed point
 fixB :: forall a. a -> (ABehavior Event a -> ABehavior Event a) -> ABehavior Event a
-fixB a f = behavior \s -> unsafePerformEff do
-  { event, push } <- create
-  let b = f (step a event)
-  subscribe (sample_ b s) push
-  pure (sampleOn event s)
+fixB a f =
+  behavior \s ->
+    fix \event ->
+      let b = f (step a event)
+      in { input: sample_ b s, output: sampleOn event s }
 
 -- | Solve a first order differential equation of the form
 -- |
@@ -280,5 +285,5 @@ animate
   :: forall scene eff
    . ABehavior Event scene
   -> (scene -> Eff (frp :: FRP | eff) Unit)
-  -> Eff (frp :: FRP | eff) Unit
+  -> Eff (frp :: FRP | eff) (Eff (frp :: FRP | eff) Unit)
 animate scene render = subscribe (sample_ scene animationFrame) render

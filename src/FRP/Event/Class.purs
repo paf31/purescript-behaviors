@@ -7,6 +7,8 @@ module FRP.Event.Class
   , withLast
   , sampleOn
   , sampleOn_
+  , keepLatest
+  , fix
   , module Data.Filterable
   ) where
 
@@ -23,11 +25,16 @@ import Data.Tuple (Tuple(..), snd)
 -- |
 -- | - `fold`: combines incoming values using the specified function,
 -- | starting with the specific initial value.
--- | - `mapMaybe`: discards incoming values which do not satisfy a predicate.
+-- | - `keepLatest` flattens a nested event, reporting values only from the
+-- | most recent inner event.
 -- | - `sampleOn`: samples an event at the times when a second event fires.
+-- | - `fix`: compute a fixed point, by feeding output events back in as
+-- | inputs.
 class (Alternative event, Filterable event) <= IsEvent event where
   fold :: forall a b. (a -> b -> b) -> event a -> b -> event b
+  keepLatest :: forall a. event (event a) -> event a
   sampleOn :: forall a b. event a -> event (a -> b) -> event b
+  fix :: forall i o. (event i -> { input :: event i, output :: event o }) -> event o
 
 -- | Count the number of events received.
 count :: forall event a. IsEvent event => event a -> event Int
