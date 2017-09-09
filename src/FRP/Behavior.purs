@@ -6,6 +6,8 @@ module FRP.Behavior
   , sample
   , sampleBy
   , sample_
+  , gate
+  , gateBy
   , unfold
   , switcher
   , integral
@@ -25,6 +27,7 @@ import Prelude
 import Control.Alt (alt)
 import Control.Apply (lift2)
 import Control.Monad.Eff (Eff)
+import Data.Filterable (filtered)
 import Data.Function (applyFlipped)
 import Data.Maybe (Maybe(..))
 import Data.Monoid (class Monoid, mempty)
@@ -93,6 +96,14 @@ sample_ = sampleBy const
 switcher :: forall a. Behavior a -> Event (Behavior a) -> Behavior a
 switcher b0 e = behavior \s ->
   keepLatest (pure (sample b0 s) `alt` map (\b -> sample b s) e)
+
+-- | Sample a `Behavior` on some `Event` by providing a predicate function.
+gateBy :: forall event p a. IsEvent event => (p -> a -> Boolean) -> ABehavior event p -> event a -> event a
+gateBy f ps xs = filtered (sampleBy (\p x -> if f p x then Just x else Nothing) ps xs)
+
+-- | Filter an `Event` by the boolean value of a `Behavior`.
+gate :: forall event a. IsEvent event => ABehavior event Boolean -> event a -> event a
+gate = gateBy const
 
 -- | Integrate with respect to some measure of time.
 -- |
