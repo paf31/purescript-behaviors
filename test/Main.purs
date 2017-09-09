@@ -11,10 +11,11 @@ import Data.Int (toNumber)
 import Data.Maybe (fromJust, maybe)
 import Data.Set (isEmpty)
 import FRP (FRP)
-import FRP.Behavior (Behavior, animate, solve2', switcher)
+import FRP.Behavior (Behavior, animate, fixB, integral', switcher)
 import FRP.Behavior.Mouse (buttons)
 import FRP.Behavior.Mouse as Mouse
 import FRP.Behavior.Time as Time
+import FRP.Event.Class (fold)
 import FRP.Event.Mouse (down)
 import Global (infinity)
 import Graphics.Canvas (CANVAS, getCanvasElementById, getCanvasHeight, getCanvasWidth, getContext2D, setCanvasHeight, setCanvasWidth)
@@ -52,17 +53,18 @@ scene { w, h } = pure background <> map renderCircles circles where
   --
   -- We can solve the differential equation by integration using `solve2'`.
   swell :: Behavior Number
-  swell = solve2' 2.0 5.0 Time.seconds \b db ->
-    let f bs s ds | isEmpty bs = -8.0 * (s - 1.0) - ds * 2.0
-                  | otherwise = 2.0 * (4.0 - s)
-    in f <$> buttons <*> b <*> db
-
-  -- This variant resets when the mouse is clicked.
-  swell' :: Behavior Number
-  swell' = switcher swell (down $> swell)
+  swell =
+      fixB 2.0 \b ->
+        integral' 2.0 Time.seconds
+          let db = fixB 10.0 \db ->
+                     integral' 10.0 Time.seconds (f <$> buttons <*> b <*> db)
+          in switcher db (down $> db)
+    where
+      f bs s ds | isEmpty bs = -8.0 * (s - 1.0) - ds * 2.0
+                | otherwise = 2.0 * (4.0 - s)
 
   circles :: Behavior (Array Circle)
-  circles = toCircles <$> Mouse.position <*> swell' where
+  circles = toCircles <$> Mouse.position <*> swell where
     toCircles m sw =
         sortBy (comparing (\{ x, y } -> -(dist x y m))) do
           i <- 0 .. 16
