@@ -12,7 +12,8 @@ exports.withKeys = function (e) {
   return function(sub) {
     return e(function(a) {
       var currentKeysArray = Object.keys(currentKeys)
-            .filter(function(k) { return currentKeys[k] });
+            .filter(function(k) { return currentKeys[k] })
+            .map(function(k) { return parseInt(k) });
       sub({ keys: currentKeysArray, value: a });
     });
   };
