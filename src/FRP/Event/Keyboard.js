@@ -1,20 +1,20 @@
 "use strict";
 
-var currentKeys = [];
+var currentKeys = {};
 addEventListener("keydown", function(e) {
-  currentKeys.push(e.keyCode);
+  currentKeys[e.keyCode] = true;
 });
 addEventListener("keyup", function(e) {
-  var index = currentKeys.indexOf(e.keyCode);
-  if (index >= 0) {
-    currentKeys.splice(index, 1);
-  }
+  currentKeys[e.keyCode] = false;
 });
 
 exports.withKeys = function (e) {
   return function(sub) {
     return e(function(a) {
-      sub({ keys: currentKeys, value: a });
+      var currentKeysArray = Object.keys(currentKeys)
+            .filter(function(k) { return currentKeys[k] })
+            .map(function(k) { return parseInt(k) });
+      sub({ keys: currentKeysArray, value: a });
     });
   };
 };
