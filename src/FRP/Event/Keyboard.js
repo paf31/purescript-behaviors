@@ -2,7 +2,10 @@
 
 var currentKeys = [];
 addEventListener("keydown", function(e) {
-  currentKeys.push(e.keyCode);
+  var index = currentKeys.indexOf(e.keyCode);
+  if (index < 0) {
+    currentKeys.push(e.keyCode);
+  }
 });
 addEventListener("keyup", function(e) {
   var index = currentKeys.indexOf(e.keyCode);
