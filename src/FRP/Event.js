@@ -144,7 +144,7 @@ exports.keepLatest = function (e) {
   };
 };
 
-function subject() {
+exports.create = function () {
   var subs = [];
   return {
     event: function(sub) {
@@ -157,19 +157,24 @@ function subject() {
       };
     },
     push: function(a) {
-      for (var i = 0; i < subs.length; i++) {
-        subs[i](a);
-      }
+      return function() {
+        for (var i = 0; i < subs.length; i++) {
+          subs[i](a);
+        }
+      };
     }
   };
 };
 
 exports.fix = function(f) {
-  var s = subject();
+  var s = exports.create();
   var io = f(s.event);
 
   return function(sub) {
-    var cancel1 = io.input(s.push);
+    var sub1 = function(a) {
+      s.push(a)();
+    };
+    var cancel1 = io.input(sub1);
     var cancel2 = io.output(sub);
 
     return function() {
