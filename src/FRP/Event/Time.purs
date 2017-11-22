@@ -40,7 +40,7 @@ withBlocking process event
         comparison a b = a < b.time
 
         unblocked :: Event { time :: Number, value :: a }
-        unblocked = gateBy comparison expiries stamped
+        unblocked = gateBy comparison 0.0 expiries stamped
       in
         { input:  map _.value unblocked
         , output: map _.value processed
