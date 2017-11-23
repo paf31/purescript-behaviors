@@ -16,7 +16,7 @@ module FRP.Event.Class
 
 import Prelude
 
-import Control.Alternative (class Alternative)
+import Control.Alternative (class Alternative, (<|>))
 import Data.Filterable (class Filterable, filterMap, filtered)
 import Data.Maybe (Maybe(..))
 import Data.Monoid (class Monoid, mempty)
@@ -70,20 +70,24 @@ mapAccum f xs acc = filterMap snd
 sampleOn_ :: forall event a b. IsEvent event => event a -> event b -> event a
 sampleOn_ a b = sampleOn a (b $> id)
 
--- | Sample the events that are fired while a boolean event is true.
+-- | Sample the events that are fired while a boolean event is true. Note that,
+-- | until the boolean event fires, it will be assumed to be `false`, and events
+-- | will be blocked.
 gate :: forall a event. IsEvent event => event Boolean -> event a -> event a
-gate = gateBy const
+gate = gateBy const false
 
--- | Generalised form of `gateBy`, allowing for any predicate between
--- | the two events. When true, the second event is sampled.
+-- | Generalised form of `gateBy`, allowing for any predicate between the two
+-- | events. An initial value for the event is also required, and will be used
+-- | until the second event fires an event.
 gateBy
-  :: forall a b event.
-     IsEvent event
+  :: forall a b event
+   . IsEvent event
   => (a -> b -> Boolean)
+  -> a
   -> event a
   -> event b
   -> event b
-gateBy f s
+gateBy f init sampled
    = filtered
- <<< sampleOn s
+ <<< sampleOn (pure init <|> sampled)
  <<< map \x p -> if f p x then Just x else Nothing
