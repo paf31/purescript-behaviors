@@ -18,7 +18,7 @@ import Prelude
 
 import Control.Alternative (class Alternative, (<|>))
 import Data.Filterable (class Filterable, filterMap, filtered)
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Monoid (class Monoid, mempty)
 import Data.Tuple (Tuple(..), snd)
 
@@ -74,20 +74,19 @@ sampleOn_ a b = sampleOn a (b $> id)
 -- | until the boolean event fires, it will be assumed to be `false`, and events
 -- | will be blocked.
 gate :: forall a event. IsEvent event => event Boolean -> event a -> event a
-gate = gateBy const false
+gate = gateBy (\x _ -> fromMaybe false x)
 
 -- | Generalised form of `gateBy`, allowing for any predicate between the two
--- | events. An initial value for the event is also required, and will be used
--- | until the second event fires an event.
+-- | events. Until a value from the first event is received, `Nothing` will be
+-- | passed to the predicate.
 gateBy
   :: forall a b event
    . IsEvent event
-  => (a -> b -> Boolean)
-  -> a
+  => (Maybe a -> b -> Boolean)
   -> event a
   -> event b
   -> event b
-gateBy f init sampled
+gateBy f sampled
    = filtered
- <<< sampleOn (pure init <|> sampled)
+ <<< sampleOn (pure Nothing <|> (Just <$> sampled))
  <<< map \x p -> if f p x then Just x else Nothing

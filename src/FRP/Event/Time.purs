@@ -4,12 +4,11 @@ module FRP.Event.Time
   , withTime
   ) where
 
-import Control.Alternative ((<|>))
-import Data.Maybe (Maybe(..), maybe)
+import Data.Maybe (Maybe, maybe)
 import Data.Unit (Unit)
 import FRP.Event (Event)
 import FRP.Event.Class (fix, gateBy)
-import Prelude ((+), (<), map, pure)
+import Prelude ((+), (<), map)
 
 -- | Create an event which fires every specified number of milliseconds.
 foreign import interval :: Int -> Event Int
@@ -37,16 +36,16 @@ debounceWith process event
         processed :: Event { period :: Number, value :: b }
         processed = process allowed
 
-        expiries :: Event (Maybe Number)
-        expiries = pure Nothing <|>
-          map (\{ time, value } -> Just (time + value))
+        expiries :: Event Number
+        expiries =
+          map (\{ time, value } -> time + value)
               (withTime (map _.period processed))
 
         comparison :: forall r. Maybe Number -> { time :: Number | r } -> Boolean
         comparison a b = maybe true (_ < b.time) a
 
         unblocked :: Event { time :: Number, value :: a }
-        unblocked = gateBy comparison Nothing expiries stamped
+        unblocked = gateBy comparison expiries stamped
       in
         { input:  map _.value unblocked
         , output: map _.value processed
