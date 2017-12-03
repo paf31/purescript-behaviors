@@ -2,6 +2,8 @@ module FRP.Event.Time
   ( interval
   , animationFrame
   , withTime
+  , debounce
+  , debounceWith
   ) where
 
 import Data.Maybe (Maybe, maybe)
