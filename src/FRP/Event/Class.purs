@@ -57,10 +57,10 @@ withLast e = filterMap id (fold step e Nothing) where
 -- | For example, to keep the index of the current event:
 -- |
 -- | ```purescript
--- | mapAccum (\x i -> Tuple (i + 1) (Tuple x i)) 0`.
+-- | mapAccum (\x i -> Tuple (i + 1) (Tuple x i)) 0
 -- | ```
-mapAccum :: forall event a b c. IsEvent event => (a -> b -> Tuple b c) -> event a -> b -> event c
-mapAccum f xs acc = filterMap snd
+mapAccum :: forall event a b c. IsEvent event => (a -> b -> Tuple b c) -> b -> event a -> event c
+mapAccum f acc xs = filterMap snd
   $ fold (\a (Tuple b _) -> pure <$> f a b) xs
   $ Tuple acc Nothing
 
