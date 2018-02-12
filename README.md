@@ -2,6 +2,7 @@
 
 - [Example](test/Main.purs)
 - [Moving Gears Example](https://github.com/knaman2609/purescript-behaviors-example)
+- [Behavior Derivative Example](https://github.com/knaman2609/purescript-behaviors-derivative-example)
 - [API Documentation](generated-docs/FRP)
 - [Try `purescript-behaviors` in the browser](http://try.purescript.org/?backend=behaviors)
 
