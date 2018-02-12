@@ -1,18 +1,21 @@
 # purescript-behaviors
 
-- [Example](test/Main.purs)
-- [Moving Gears Example](https://github.com/knaman2609/purescript-behaviors-example)
 - [API Documentation](generated-docs/FRP)
 - [Try `purescript-behaviors` in the browser](http://try.purescript.org/?backend=behaviors)
 
-![Example](screenshots/1.gif)
-
 ## Building
-
 ```
 pulp build
 npm run example
 ```
+
+## Examples
+- [Example](test/Main.purs)
+- [Moving Gears Example](https://github.com/knaman2609/purescript-behaviors-example)
+- [Behavior Derivative Example](https://github.com/knaman2609/purescript-behaviors-derivative-example)
+
+![Example](screenshots/1.gif)
+
 
 ## Introduction
 
