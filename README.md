@@ -2,6 +2,7 @@
 
 - [Example](test/Main.purs)
 - [Moving Gears Example](https://github.com/knaman2609/purescript-behaviors-example)
+- [Demo](https://github.com/paf31/purescript-behaviors-demo)
 - [API Documentation](generated-docs/FRP)
 - [Try `purescript-behaviors` in the browser](http://try.purescript.org/?backend=behaviors)
 
@@ -48,7 +49,17 @@ interactive differential equations. For example, here is an exponential function
 computed as the solution of a differential equation:
 
 ```purescript
-exp = fixB 1.0 \b -> integrate 1.0 time ((-2.0 * _) <$> b)
+exp = fixB 1.0 \b -> integral' 1.0 seconds ((-2.0 * _) <$> b)
 ```
+Its differential equation is  𝑑𝑥/𝑑𝑡 = −2𝑥 
+,  which is rearranged so the right hand side gives an expression whose fixed point solution is the exponential function desired.
+
+𝑥 = ∫−2𝑥 𝑑𝑡
+
+(In the purescript formulation, the values `1.0` are respectively the initial value for the Behavior being integrated over, and the initial approximation to the integral)
+
 
 See the [example project](test/Main.purs) for a more interesting, interactive example.
+
+See also a conversational [demo](https://github.com/paf31/purescript-behaviors-demo). An accompanying [video discussion](https://www.youtube.com/watch?v=N4tSQsKZDQ8) breaks down a component of the example project.
+
