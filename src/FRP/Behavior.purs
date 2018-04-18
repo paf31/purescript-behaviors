@@ -26,13 +26,12 @@ import Prelude
 
 import Control.Alt (alt)
 import Control.Apply (lift2)
-import Control.Monad.Eff (Eff)
+import Control.Monad.Effect (Effect)
 import Data.Filterable (filtered)
 import Data.Function (applyFlipped)
 import Data.Maybe (Maybe(..))
 import Data.Monoid (class Monoid, mempty)
 import Data.Tuple (Tuple(Tuple))
-import FRP (FRP)
 import FRP.Event (class IsEvent, Event, fix, fold, keepLatest, sampleOn, subscribe, withLast)
 import FRP.Event.Time (animationFrame)
 
@@ -282,8 +281,8 @@ solve2' = solve2 (_ $ id)
 
 -- | Animate a `Behavior` by providing a rendering function.
 animate
-  :: forall scene eff
+  :: forall scene
    . ABehavior Event scene
-  -> (scene -> Eff (frp :: FRP | eff) Unit)
-  -> Eff (frp :: FRP | eff) (Eff (frp :: FRP | eff) Unit)
+  -> (scene -> Effect Unit)
+  -> Effect (Effect Unit)
 animate scene render = subscribe (sample_ scene animationFrame) render

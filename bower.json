@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "purescript-prelude": "^3.0.0",
-    "purescript-eff": "^3.0.0",
+    "purescript-effect": "^0.1.0",
     "purescript-sets": "^3.0.0",
     "purescript-filterable": "^2.3.0",
     "purescript-nullable": "^3.0.0"

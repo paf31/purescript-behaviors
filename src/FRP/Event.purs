@@ -9,12 +9,11 @@ import Prelude
 
 import Control.Alternative (class Alt, class Alternative, class Plus)
 import Control.Apply (lift2)
-import Control.Monad.Eff (Eff)
+import Control.Monad.Effect (Effect)
 import Data.Filterable (class Filterable, filterMap)
 import Data.Either (either, hush)
 import Data.Maybe (Maybe(..), fromJust, isJust)
 import Data.Monoid (class Monoid, mempty)
-import FRP (FRP)
 import FRP.Event.Class as Class
 import Partial.Unsafe (unsafePartial)
 
@@ -104,15 +103,15 @@ foreign import fix :: forall i o. (Event i -> { input :: Event i, output :: Even
 -- |
 -- | `subscribe` returns a canceller function.
 foreign import subscribe
-  :: forall eff a r
+  :: forall a r
    . Event a
-  -> (a -> Eff (frp :: FRP | eff) r)
-  -> Eff (frp :: FRP | eff) (Eff (frp :: FRP | eff) Unit)
+  -> (a -> Effect r)
+  -> Effect (Effect Unit)
 
 -- | Create an event and a function which supplies a value to that event.
 foreign import create
-  :: forall eff a
-   . Eff (frp :: FRP | eff)
+  :: forall a
+   . Effect
          { event :: Event a
-         , push :: a -> Eff (frp :: FRP | eff) Unit
+         , push :: a -> Effect Unit
          }
