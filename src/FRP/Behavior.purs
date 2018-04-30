@@ -26,13 +26,11 @@ import Prelude
 
 import Control.Alt (alt)
 import Control.Apply (lift2)
-import Control.Monad.Eff (Eff)
-import Data.Filterable (filtered)
+import Effect (Effect)
+import Data.Filterable (cleared)
 import Data.Function (applyFlipped)
 import Data.Maybe (Maybe(..))
-import Data.Monoid (class Monoid, mempty)
 import Data.Tuple (Tuple(Tuple))
-import FRP (FRP)
 import FRP.Event (class IsEvent, Event, fix, fold, keepLatest, sampleOn, subscribe, withLast)
 import FRP.Event.Time (animationFrame)
 
@@ -99,7 +97,7 @@ switcher b0 e = behavior \s ->
 
 -- | Sample a `Behavior` on some `Event` by providing a predicate function.
 gateBy :: forall event p a. IsEvent event => (p -> a -> Boolean) -> ABehavior event p -> event a -> event a
-gateBy f ps xs = filtered (sampleBy (\p x -> if f p x then Just x else Nothing) ps xs)
+gateBy f ps xs = cleared (sampleBy (\p x -> if f p x then Just x else Nothing) ps xs)
 
 -- | Filter an `Event` by the boolean value of a `Behavior`.
 gate :: forall event a. IsEvent event => ABehavior event Boolean -> event a -> event a
@@ -126,7 +124,7 @@ integral
   -> ABehavior event a
 integral g initial t b =
     ABehavior \e ->
-      let x = sample b (e $> id)
+      let x = sample b (e $> identity)
           y = withLast (sampleBy Tuple t x)
           z = fold approx y initial
       in e <*> z
@@ -149,7 +147,7 @@ integral'
   -> ABehavior event t
   -> ABehavior event t
   -> ABehavior event t
-integral' = integral (_ $ id)
+integral' = integral (_ $ identity)
 
 -- | Differentiate with respect to some measure of time.
 -- |
@@ -171,7 +169,7 @@ derivative
   -> ABehavior event a
 derivative g t b =
     ABehavior \e ->
-      let x = sample b (e $> id)
+      let x = sample b (e $> identity)
           y = withLast (sampleBy Tuple t x)
           z = map approx y
       in e <*> z
@@ -190,7 +188,7 @@ derivative'
   => ABehavior event t
   -> ABehavior event t
   -> ABehavior event t
-derivative' = derivative (_ $ id)
+derivative' = derivative (_ $ identity)
 
 -- | Compute a fixed point
 fixB :: forall a. a -> (ABehavior Event a -> ABehavior Event a) -> ABehavior Event a
@@ -235,7 +233,7 @@ solve'
   -> Behavior a
   -> (Behavior a -> Behavior a)
   -> Behavior a
-solve' = solve (_ $ id)
+solve' = solve (_ $ identity)
 
 -- | Solve a second order differential equation of the form
 -- |
@@ -278,12 +276,12 @@ solve2'
   -> Behavior a
   -> (Behavior a -> Behavior a -> Behavior a)
   -> Behavior a
-solve2' = solve2 (_ $ id)
+solve2' = solve2 (_ $ identity)
 
 -- | Animate a `Behavior` by providing a rendering function.
 animate
-  :: forall scene eff
+  :: forall scene
    . ABehavior Event scene
-  -> (scene -> Eff (frp :: FRP | eff) Unit)
-  -> Eff (frp :: FRP | eff) (Eff (frp :: FRP | eff) Unit)
+  -> (scene -> Effect Unit)
+  -> Effect (Effect Unit)
 animate scene render = subscribe (sample_ scene animationFrame) render

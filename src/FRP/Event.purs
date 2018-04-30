@@ -9,12 +9,11 @@ import Prelude
 
 import Control.Alternative (class Alt, class Alternative, class Plus)
 import Control.Apply (lift2)
-import Control.Monad.Eff (Eff)
-import Data.Filterable (class Filterable, filterMap)
+import Data.Compactable (class Compactable)
 import Data.Either (either, hush)
+import Data.Filterable (class Filterable, filterMap)
 import Data.Maybe (Maybe(..), fromJust, isJust)
-import Data.Monoid (class Monoid, mempty)
-import FRP (FRP)
+import Effect (Effect)
 import FRP.Event.Class as Class
 import Partial.Unsafe (unsafePartial)
 
@@ -41,6 +40,13 @@ foreign import never :: forall a. Event a
 
 instance functorEvent :: Functor Event where
   map = mapImpl
+
+instance compactableEvent :: Compactable Event where
+  compact e = filterMap identity e
+  separate e =
+    { left: filterMap (either Just (const Nothing)) e
+    , right: filterMap (either (const Nothing) Just) e
+    }
 
 instance filterableEvent :: Filterable Event where
   filter = filter
@@ -104,15 +110,15 @@ foreign import fix :: forall i o. (Event i -> { input :: Event i, output :: Even
 -- |
 -- | `subscribe` returns a canceller function.
 foreign import subscribe
-  :: forall eff a r
+  :: forall a r
    . Event a
-  -> (a -> Eff (frp :: FRP | eff) r)
-  -> Eff (frp :: FRP | eff) (Eff (frp :: FRP | eff) Unit)
+  -> (a -> Effect r)
+  -> Effect (Effect Unit)
 
 -- | Create an event and a function which supplies a value to that event.
 foreign import create
-  :: forall eff a
-   . Eff (frp :: FRP | eff)
+  :: forall a
+   . Effect
          { event :: Event a
-         , push :: a -> Eff (frp :: FRP | eff) Unit
+         , push :: a -> Effect Unit
          }

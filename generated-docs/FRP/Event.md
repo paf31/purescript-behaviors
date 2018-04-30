@@ -75,7 +75,7 @@ inner `Event`.
 #### `subscribe`
 
 ``` purescript
-subscribe :: forall eff a r. Event a -> (a -> Eff (frp :: FRP | eff) r) -> Eff (frp :: FRP | eff) (Eff (frp :: FRP | eff) Unit)
+subscribe :: forall a r. Event a -> (a -> Effect r) -> Effect (Effect Unit)
 ```
 
 Subscribe to an `Event` by providing a callback.

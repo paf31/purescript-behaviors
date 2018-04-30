@@ -4,7 +4,7 @@ import Prelude
 
 import Color (lighten)
 import Color.Scheme.MaterialDesign (blueGrey)
-import Control.Monad.Eff (Eff)
+import Effect (Effect)
 import Data.Array (sortBy, (..))
 import Data.Foldable (foldMap)
 import Data.Int (toNumber)
@@ -82,7 +82,7 @@ scene { w, h } = pure background <> map renderCircles circles where
               dy = y - toNumber my / scaleFactor
           in dx * dx + dy * dy
 
-main :: forall eff. Eff (canvas :: CANVAS, frp :: FRP | eff) Unit
+main :: Effect Unit
 main = do
   mcanvas <- getCanvasElementById "canvas"
   let canvas = unsafePartial (fromJust mcanvas)

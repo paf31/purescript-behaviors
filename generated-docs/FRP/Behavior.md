@@ -219,7 +219,7 @@ Compute a fixed point
 #### `animate`
 
 ``` purescript
-animate :: forall scene eff. ABehavior Event scene -> (scene -> Eff (frp :: FRP | eff) Unit) -> Eff (frp :: FRP | eff) (Eff (frp :: FRP | eff) Unit)
+animate :: forall scene. ABehavior Event scene -> (scene -> Effect Unit) -> Effect (Effect Unit)
 ```
 
 Animate a `Behavior` by providing a rendering function.
