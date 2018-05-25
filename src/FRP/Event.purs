@@ -14,7 +14,7 @@ import Data.Either (either, hush)
 import Data.Filterable (class Filterable, filterMap)
 import Data.Maybe (Maybe(..), fromJust, isJust)
 import Effect (Effect)
-import FRP.Event.Class as Class
+import FRP.Event.Class (class Filterable, class IsEvent, cleared, count, filterMap, fix, fold, folded, gate, gateBy, keepLatest, mapAccum, sampleOn, sampleOn_, withLast) as Class
 import Partial.Unsafe (unsafePartial)
 
 -- | An `Event` represents a collection of discrete occurrences with associated

@@ -4,12 +4,12 @@ import Prelude
 
 import Color (lighten)
 import Color.Scheme.MaterialDesign (blueGrey)
-import Effect (Effect)
 import Data.Array (sortBy, (..))
 import Data.Foldable (foldMap)
 import Data.Int (toNumber)
 import Data.Maybe (fromJust, maybe)
 import Data.Set (isEmpty)
+import Effect (Effect)
 import FRP (FRP)
 import FRP.Behavior (Behavior, animate, fixB, integral', switcher)
 import FRP.Behavior.Mouse (buttons)

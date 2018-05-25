@@ -22,15 +22,15 @@
     "url": "git://github.com/paf31/purescript-behaviors.git"
   },
   "dependencies": {
-    "purescript-prelude": "#compiler/0.12",
-    "purescript-effect": "#compiler/0.12",
-    "purescript-ordered-collections": "#compiler/0.12",
-    "purescript-filterable": "justinwoo/purescript-filterable#compiler/0.12",
-    "purescript-nullable": "#compiler/0.12"
+    "purescript-prelude": "^4.0.0",
+    "purescript-effect": "^2.0.0",
+    "purescript-ordered-collections": "^1.0.0",
+    "purescript-filterable": "^3.0.0",
+    "purescript-nullable": "^4.0.0"
   },
   "devDependencies": {
-    "purescript-math": "#compiler/0.12",
-    "purescript-integers": "#compiler/0.12",
-    "purescript-drawing": "#compiler/0.12"
+    "purescript-math": "^2.1.1",
+    "purescript-integers": "^4.0.0",
+    "purescript-drawing": "justinwoo/purescript-drawing#compiler/0.12"
   }
 }
