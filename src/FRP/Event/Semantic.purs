@@ -31,7 +31,7 @@
 -- | The meaning of the sampling function `b` is then the function
 -- |
 -- | ```purescript
--- | \t -> valueOf (sample b (once t id))
+-- | \t -> valueOf (sample b (once t identity))
 -- | ```
 -- |
 -- | where
@@ -60,9 +60,9 @@
 -- | ```
 -- | map f (meaning b)
 -- | = f <<< meaning b
--- | = \t -> f (valueOf (sample b (once t id)))
+-- | = \t -> f (valueOf (sample b (once t identity)))
 -- |   {- parametricity -}
--- | = \t -> valueOf (sample b (map (_ <<< f) (once t id)))
+-- | = \t -> valueOf (sample b (map (_ <<< f) (once t identity)))
 -- | = meaning (map f b)
 -- | ```
 -- |
@@ -72,15 +72,15 @@
 -- |
 -- | ```
 -- | meaning (a <*> b)
--- | = \t -> valueOf (sample (a <*> b) (once t id))
--- | = \t -> valueOf (sample b (sample a (compose <$> once t id)))
--- | = \t -> valueOf (sample b (sample a (once t id)))
--- | = \t -> valueOf (sample b (sample a (once t id)))
+-- | = \t -> valueOf (sample (a <*> b) (once t identity))
+-- | = \t -> valueOf (sample b (sample a (compose <$> once t identity)))
+-- | = \t -> valueOf (sample b (sample a (once t identity)))
+-- | = \t -> valueOf (sample b (sample a (once t identity)))
 -- |   {- sampling preserves times -}
--- | = \t -> valueOf (sample b (once t (valueOf (sample a (once t id))))
+-- | = \t -> valueOf (sample b (once t (valueOf (sample a (once t identity))))
 -- | = \t -> valueOf (sample b (once t (meaning a t)))
 -- |   {- parametricity -}
--- | = \t -> meaning a t (valueOf (sample b (once t id)))
+-- | = \t -> meaning a t (valueOf (sample b (once t identity)))
 -- | = \t -> meaning a t (meaning b t)
 -- | = meaning a <*> meaning b
 -- | ```
@@ -91,7 +91,7 @@
 -- |
 -- | ```
 -- | meaning (pure a)
--- | = \t -> valueOf (sample (pure a) (once t id))
+-- | = \t -> valueOf (sample (pure a) (once t identity))
 -- | = \t -> a
 -- | = pure a
 -- | ```
@@ -105,12 +105,12 @@ import Prelude
 import Control.Alt (class Alt)
 import Control.Alternative (class Alternative, class Plus)
 import Control.Apply (lift2)
-import Data.Either (Either(..))
+import Data.Compactable (class Compactable)
+import Data.Either (Either(..), either)
 import Data.Filterable (class Filterable, filter, filterMap, partition, partitionMap)
 import Data.List (List(..), (:))
 import Data.List as List
-import Data.Maybe (Maybe)
-import Data.Monoid (class Monoid, mempty)
+import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype)
 import Data.Traversable (mapAccumL, traverse)
 import Data.Tuple (Tuple(..), fst, snd)
@@ -146,7 +146,7 @@ latestAt
 latestAt t xs = List.last (List.takeWhile ((_ <= t) <<< fst) xs)
 
 meaning :: forall time a. Bounded time => ABehavior (Semantic time) a -> time -> a
-meaning b t = unsafePartial valueOf (sample b (once t id)) where
+meaning b t = unsafePartial valueOf (sample b (once t identity)) where
   valueOf :: Partial => Semantic time a -> a
   valueOf (Semantic (Tuple _ a : Nil)) = a
 
@@ -176,6 +176,13 @@ instance semigroupSemantic :: (Ord time, Semigroup a) => Semigroup (Semantic tim
 
 instance monoidSemantic :: (Bounded time, Monoid a) => Monoid (Semantic time a) where
   mempty = pure mempty
+
+instance compactableSemantic :: Compactable (Semantic time) where
+  compact e = filterMap identity e
+  separate e =
+    { left: filterMap (either Just (const Nothing)) e
+    , right: filterMap (either (const Nothing) Just) e
+    }
 
 instance filterableSemantic :: Filterable (Semantic time) where
   filter p (Semantic xs) = Semantic (filter (p <<< snd) xs)

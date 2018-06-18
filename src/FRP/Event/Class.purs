@@ -17,9 +17,8 @@ module FRP.Event.Class
 import Prelude
 
 import Control.Alternative (class Alternative, (<|>))
-import Data.Filterable (class Filterable, filterMap, filtered)
+import Data.Filterable (class Filterable, cleared, filterMap)
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Monoid (class Monoid, mempty)
 import Data.Tuple (Tuple(..), snd)
 
 -- | Functions which an `Event` type should implement, so that
@@ -48,7 +47,7 @@ folded s = fold append s mempty
 
 -- | Compute differences between successive event values.
 withLast :: forall event a. IsEvent event => event a -> event { now :: a, last :: Maybe a }
-withLast e = filterMap id (fold step e Nothing) where
+withLast e = filterMap identity (fold step e Nothing) where
   step a Nothing           = Just { now: a, last: Nothing }
   step a (Just { now: b }) = Just { now: a, last: Just b }
 
@@ -68,7 +67,7 @@ mapAccum f xs acc = filterMap snd
 -- | at the times when the second event fires, ignoring the values produced by
 -- | the second event.
 sampleOn_ :: forall event a b. IsEvent event => event a -> event b -> event a
-sampleOn_ a b = sampleOn a (b $> id)
+sampleOn_ a b = sampleOn a (b $> identity)
 
 -- | Sample the events that are fired while a boolean event is true. Note that,
 -- | until the boolean event fires, it will be assumed to be `false`, and events
@@ -87,6 +86,6 @@ gateBy
   -> event b
   -> event b
 gateBy f sampled
-   = filtered
+   = cleared
  <<< sampleOn (pure Nothing <|> (Just <$> sampled))
  <<< map \x p -> if f p x then Just x else Nothing
