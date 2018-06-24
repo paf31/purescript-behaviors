@@ -1,17 +1,19 @@
 module FRP.Behavior.Time
-  ( millisSinceEpoch
+  ( instant
   , seconds
   ) where
 
 import Prelude
 
+import Data.DateTime.Instant (Instant, unInstant)
+import Data.Time.Duration (Seconds, toDuration)
 import FRP.Behavior (Behavior, behavior)
 import FRP.Event.Time (withTime)
 
 -- | Get the current time in milliseconds since the epoch.
-millisSinceEpoch :: Behavior Number
-millisSinceEpoch = behavior \e -> map (\{ value, time: t } -> value t) (withTime e)
+instant :: Behavior Instant
+instant = behavior \e -> map (\{ value, time: t } -> value t) (withTime e)
 
 -- | Get the current time in seconds since the epoch.
-seconds :: Behavior Number
-seconds = map (_ / 1000.0) millisSinceEpoch
+seconds :: Behavior Seconds
+seconds = map (toDuration <<< unInstant) instant

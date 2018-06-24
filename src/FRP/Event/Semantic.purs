@@ -31,7 +31,7 @@
 -- | The meaning of the sampling function `b` is then the function
 -- |
 -- | ```purescript
--- | \t -> valueOf (sample b (once t identity))
+-- | \t -> valueOf (sample b (once t identityentity))
 -- | ```
 -- |
 -- | where
@@ -106,11 +106,11 @@ import Control.Alt (class Alt)
 import Control.Alternative (class Alternative, class Plus)
 import Control.Apply (lift2)
 import Data.Compactable (class Compactable)
-import Data.Either (Either(..), either)
+import Data.Either (Either(..))
 import Data.Filterable (class Filterable, filter, filterMap, partition, partitionMap)
 import Data.List (List(..), (:))
 import Data.List as List
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype)
 import Data.Traversable (mapAccumL, traverse)
 import Data.Tuple (Tuple(..), fst, snd)
@@ -178,11 +178,8 @@ instance monoidSemantic :: (Bounded time, Monoid a) => Monoid (Semantic time a) 
   mempty = pure mempty
 
 instance compactableSemantic :: Compactable (Semantic time) where
-  compact e = filterMap identity e
-  separate e =
-    { left: filterMap (either Just (const Nothing)) e
-    , right: filterMap (either (const Nothing) Just) e
-    }
+  compact = filterMap identity
+  separate = partitionMap identity
 
 instance filterableSemantic :: Filterable (Semantic time) where
   filter p (Semantic xs) = Semantic (filter (p <<< snd) xs)

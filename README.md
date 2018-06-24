@@ -1,7 +1,6 @@
 # purescript-behaviors
 
 - [Example](test/Main.purs)
-- [Moving Gears Example](https://github.com/knaman2609/purescript-behaviors-example)
 - [Demo](https://github.com/paf31/purescript-behaviors-demo)
 - [API Documentation](generated-docs/FRP)
 - [Try `purescript-behaviors` in the browser](http://try.purescript.org/?backend=behaviors)

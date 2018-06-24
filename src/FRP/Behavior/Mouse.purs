@@ -6,15 +6,14 @@ module FRP.Behavior.Mouse
 import Prelude
 
 import Data.Maybe (Maybe)
-import Data.Nullable (toMaybe)
 import Data.Set as Set
 import FRP.Behavior (Behavior, behavior)
-import FRP.Event.Mouse (withPosition, withButtons)
+import FRP.Event.Mouse (Mouse, withPosition, withButtons)
 
 -- | A `Behavior` which reports the current mouse position, if it is known.
-position :: Behavior (Maybe { x :: Int, y :: Int })
-position = behavior \e -> map (\{ value, pos } -> value (toMaybe pos)) (withPosition e)
+position :: Mouse -> Behavior (Maybe { x :: Int, y :: Int })
+position m = behavior \e -> map (\{ value, pos } -> value pos) (withPosition m e)
 
 -- | A `Behavior` which reports the mouse buttons which are currently pressed.
-buttons :: Behavior (Set.Set Int)
-buttons = behavior \e -> map (\{ value, buttons: bs } -> value (Set.fromFoldable bs)) (withButtons e)
+buttons :: Mouse -> Behavior (Set.Set Int)
+buttons m = behavior \e -> map (\{ value, buttons: bs } -> value bs) (withButtons m e)
