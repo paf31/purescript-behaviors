@@ -8,24 +8,23 @@ import Data.Array (sortBy, (..))
 import Data.Foldable (foldMap)
 import Data.Int (toNumber)
 import Data.Maybe (fromJust, maybe)
+import Data.Newtype (unwrap)
 import Data.Set (isEmpty)
 import Effect (Effect)
-import FRP (FRP)
 import FRP.Behavior (Behavior, animate, fixB, integral', switcher)
 import FRP.Behavior.Mouse (buttons)
 import FRP.Behavior.Mouse as Mouse
 import FRP.Behavior.Time as Time
-import FRP.Event.Class (fold)
-import FRP.Event.Mouse (down)
+import FRP.Event.Mouse (Mouse, getMouse, down)
 import Global (infinity)
-import Graphics.Canvas (CANVAS, getCanvasElementById, getCanvasHeight, getCanvasWidth, getContext2D, setCanvasHeight, setCanvasWidth)
+import Graphics.Canvas (getCanvasElementById, getCanvasHeight, getCanvasWidth, getContext2D, setCanvasHeight, setCanvasWidth)
 import Graphics.Drawing (Drawing, circle, fillColor, filled, lineWidth, outlineColor, outlined, rectangle, render, scale, translate)
 import Partial.Unsafe (unsafePartial)
 
 type Circle = { x :: Number, y :: Number, size :: Number }
 
-scene :: { w :: Number, h :: Number } -> Behavior Drawing
-scene { w, h } = pure background <> map renderCircles circles where
+scene :: Mouse -> { w :: Number, h :: Number } -> Behavior Drawing
+scene mouse { w, h } = pure background <> map renderCircles circles where
   background :: Drawing
   background = filled (fillColor blueGrey) (rectangle 0.0 0.0 w h)
 
@@ -55,16 +54,16 @@ scene { w, h } = pure background <> map renderCircles circles where
   swell :: Behavior Number
   swell =
       fixB 2.0 \b ->
-        integral' 2.0 Time.seconds
-          let db = fixB 10.0 \db ->
-                     integral' 10.0 Time.seconds (f <$> buttons <*> b <*> db)
+        integral' 2.0 (unwrap <$> Time.seconds)
+          let db = fixB 10.0 \db_ ->
+                     integral' 10.0 (unwrap <$> Time.seconds) (f <$> buttons mouse <*> b <*> db_)
           in switcher db (down $> db)
     where
       f bs s ds | isEmpty bs = -8.0 * (s - 1.0) - ds * 2.0
                 | otherwise = 2.0 * (4.0 - s)
 
   circles :: Behavior (Array Circle)
-  circles = toCircles <$> Mouse.position <*> swell where
+  circles = toCircles <$> Mouse.position mouse <*> swell where
     toCircles m sw =
         sortBy (comparing (\{ x, y } -> -(dist x y m))) do
           i <- 0 .. 16
@@ -89,7 +88,8 @@ main = do
   ctx <- getContext2D canvas
   w <- getCanvasWidth canvas
   h <- getCanvasHeight canvas
-  _ <- setCanvasWidth w canvas
-  _ <- setCanvasHeight h canvas
-  _ <- animate (scene { w, h }) (render ctx)
+  _ <- setCanvasWidth canvas w
+  _ <- setCanvasHeight canvas h
+  mouse <- getMouse
+  _ <- animate (scene mouse { w, h }) (render ctx)
   pure unit

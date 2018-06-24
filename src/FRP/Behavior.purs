@@ -32,7 +32,7 @@ import Data.Function (applyFlipped)
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(Tuple))
 import FRP.Event (class IsEvent, Event, fix, fold, keepLatest, sampleOn, subscribe, withLast)
-import FRP.Event.Time (animationFrame)
+import FRP.Event.AnimationFrame (animationFrame)
 
 -- | `ABehavior` is the more general type of `Behavior`, which is parameterized
 -- | over some underlying `event` type.

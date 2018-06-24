@@ -7,12 +7,12 @@ import Prelude
 
 import Data.Set as Set
 import FRP.Behavior (Behavior, behavior)
-import FRP.Event.Keyboard (withKeys)
+import FRP.Event.Keyboard (Keyboard, withKeys)
 
 -- | A `Behavior` which reports the keys which are currently pressed.
-keys :: Behavior (Set.Set Int)
-keys = behavior \e -> map (\{ value, keys: ks } -> value (Set.fromFoldable ks)) (withKeys e)
+keys :: Keyboard -> Behavior (Set.Set String)
+keys keyboard = behavior \e -> map (\{ value, keys: ks } -> value (Set.fromFoldable ks)) (withKeys keyboard e)
 
 -- | A `Behavior` which reports whether a specific key is currently pressed.
-key :: Int -> Behavior Boolean
-key k = Set.member k <$> keys
+key :: Keyboard -> String -> Behavior Boolean
+key keyboard k = Set.member k <$> keys keyboard
