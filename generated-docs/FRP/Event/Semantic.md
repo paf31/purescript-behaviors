@@ -33,7 +33,7 @@ time -> a
 The meaning of the sampling function `b` is then the function
 
 ```purescript
-\t -> valueOf (sample b (once t id))
+\t -> valueOf (sample b (once t identityentity))
 ```
 
 where
@@ -62,9 +62,9 @@ sample b (once t f) = once t (valueOf (sample b (once t f)))
 ```
 map f (meaning b)
 = f <<< meaning b
-= \t -> f (valueOf (sample b (once t id)))
+= \t -> f (valueOf (sample b (once t identity)))
   {- parametricity -}
-= \t -> valueOf (sample b (map (_ <<< f) (once t id)))
+= \t -> valueOf (sample b (map (_ <<< f) (once t identity)))
 = meaning (map f b)
 ```
 
@@ -74,15 +74,15 @@ map f (meaning b)
 
 ```
 meaning (a <*> b)
-= \t -> valueOf (sample (a <*> b) (once t id))
-= \t -> valueOf (sample b (sample a (compose <$> once t id)))
-= \t -> valueOf (sample b (sample a (once t id)))
-= \t -> valueOf (sample b (sample a (once t id)))
+= \t -> valueOf (sample (a <*> b) (once t identity))
+= \t -> valueOf (sample b (sample a (compose <$> once t identity)))
+= \t -> valueOf (sample b (sample a (once t identity)))
+= \t -> valueOf (sample b (sample a (once t identity)))
   {- sampling preserves times -}
-= \t -> valueOf (sample b (once t (valueOf (sample a (once t id))))
+= \t -> valueOf (sample b (once t (valueOf (sample a (once t identity))))
 = \t -> valueOf (sample b (once t (meaning a t)))
   {- parametricity -}
-= \t -> meaning a t (valueOf (sample b (once t id)))
+= \t -> meaning a t (valueOf (sample b (once t identity)))
 = \t -> meaning a t (meaning b t)
 = meaning a <*> meaning b
 ```
@@ -93,7 +93,7 @@ The meaning of `pure` is `pure`:
 
 ```
 meaning (pure a)
-= \t -> valueOf (sample (pure a) (once t id))
+= \t -> valueOf (sample (pure a) (once t identity))
 = \t -> a
 = pure a
 ```
@@ -118,6 +118,7 @@ Functor (Semantic time)
 (Bounded time) => Alternative (Semantic time)
 (Ord time, Semigroup a) => Semigroup (Semantic time a)
 (Bounded time, Monoid a) => Monoid (Semantic time a)
+Compactable (Semantic time)
 Filterable (Semantic time)
 (Bounded time) => IsEvent (Semantic time)
 ```

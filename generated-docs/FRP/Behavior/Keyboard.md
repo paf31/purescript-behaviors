@@ -3,7 +3,7 @@
 #### `keys`
 
 ``` purescript
-keys :: Behavior (Set Int)
+keys :: Keyboard -> Behavior (Set String)
 ```
 
 A `Behavior` which reports the keys which are currently pressed.
@@ -11,7 +11,7 @@ A `Behavior` which reports the keys which are currently pressed.
 #### `key`
 
 ``` purescript
-key :: Int -> Behavior Boolean
+key :: Keyboard -> String -> Behavior Boolean
 ```
 
 A `Behavior` which reports whether a specific key is currently pressed.

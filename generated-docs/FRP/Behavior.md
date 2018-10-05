@@ -74,6 +74,22 @@ sample_ :: forall event a b. IsEvent event => ABehavior event a -> event b -> ev
 
 Sample a `Behavior` on some `Event`, discarding the event's values.
 
+#### `gate`
+
+``` purescript
+gate :: forall event a. IsEvent event => ABehavior event Boolean -> event a -> event a
+```
+
+Filter an `Event` by the boolean value of a `Behavior`.
+
+#### `gateBy`
+
+``` purescript
+gateBy :: forall event p a. IsEvent event => (p -> a -> Boolean) -> ABehavior event p -> event a -> event a
+```
+
+Sample a `Behavior` on some `Event` by providing a predicate function.
+
 #### `unfold`
 
 ``` purescript
