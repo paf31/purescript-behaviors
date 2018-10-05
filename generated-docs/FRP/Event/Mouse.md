@@ -1,9 +1,31 @@
 ## Module FRP.Event.Mouse
 
+#### `Mouse`
+
+``` purescript
+newtype Mouse
+```
+
+A handle for creating events from the mouse position and buttons.
+
+#### `getMouse`
+
+``` purescript
+getMouse :: Effect Mouse
+```
+
+Get a handle for working with the mouse.
+
+#### `disposeMouse`
+
+``` purescript
+disposeMouse :: Mouse -> Effect Unit
+```
+
 #### `move`
 
 ``` purescript
-move :: Event { x :: Int, y :: Int }
+move :: Mouse -> Event { x :: Int, y :: Int }
 ```
 
 Create an `Event` which fires when the mouse moves
@@ -27,7 +49,7 @@ Create an `Event` which fires when a mouse button is released
 #### `withPosition`
 
 ``` purescript
-withPosition :: forall a. Event a -> Event { value :: a, pos :: Nullable { x :: Int, y :: Int } }
+withPosition :: forall a. Mouse -> Event a -> Event { value :: a, pos :: Maybe { x :: Int, y :: Int } }
 ```
 
 Create an event which also returns the current mouse position.
@@ -35,7 +57,7 @@ Create an event which also returns the current mouse position.
 #### `withButtons`
 
 ``` purescript
-withButtons :: forall a. Event a -> Event { value :: a, buttons :: Array Int }
+withButtons :: forall a. Mouse -> Event a -> Event { value :: a, buttons :: Set Int }
 ```
 
 Create an event which also returns the current mouse buttons.

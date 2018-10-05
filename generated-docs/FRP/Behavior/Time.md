@@ -1,9 +1,9 @@
 ## Module FRP.Behavior.Time
 
-#### `millisSinceEpoch`
+#### `instant`
 
 ``` purescript
-millisSinceEpoch :: Behavior Number
+instant :: Behavior Instant
 ```
 
 Get the current time in milliseconds since the epoch.
@@ -11,7 +11,7 @@ Get the current time in milliseconds since the epoch.
 #### `seconds`
 
 ``` purescript
-seconds :: Behavior Number
+seconds :: Behavior Seconds
 ```
 
 Get the current time in seconds since the epoch.
