@@ -18,14 +18,14 @@ import FRP.Event (Event, makeEvent, subscribe)
 import Web.Event.EventTarget (addEventListener, eventListener, removeEventListener)
 import Web.HTML (window)
 import Web.HTML.Window (toEventTarget)
-import Web.UIEvent.KeyboardEvent (code, fromEvent)
+import Web.UIEvent.KeyboardEvent (code, fromEvent, key)
 
 -- | A handle for creating events from the keyboard.
 newtype Keyboard = Keyboard
   { keys :: Ref.Ref (Set.Set String)
   , dispose :: Effect Unit
   }
-  
+
 -- | Get a handle for working with the keyboard.
 getKeyboard :: Effect Keyboard
 getKeyboard = do
@@ -48,22 +48,22 @@ disposeKeyboard :: Keyboard -> Effect Unit
 disposeKeyboard (Keyboard { dispose }) = dispose
 
 -- | Create an `Event` which fires when a key is pressed
-down :: Event String
+down :: Event { key :: String, code :: String }
 down = makeEvent \k -> do
   target <- toEventTarget <$> window
   keyDownListener <- eventListener \e -> do
     fromEvent e # traverse_ \ke ->
-      k (code ke)
+      k { key: key ke, code: code ke }
   addEventListener (wrap "keydown") keyDownListener false target
   pure (removeEventListener (wrap "keydown") keyDownListener false target)
 
 -- | Create an `Event` which fires when a key is released
-up :: Event String
+up :: Event { key :: String, code :: String }
 up = makeEvent \k -> do
   target <- toEventTarget <$> window
   keyUpListener <- eventListener \e -> do
     fromEvent e # traverse_ \ke ->
-      k (code ke)
+      k { key: key ke, code: code ke }
   addEventListener (wrap "keyup") keyUpListener false target
   pure (removeEventListener (wrap "keyup") keyUpListener false target)
 
